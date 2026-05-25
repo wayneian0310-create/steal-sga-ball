@@ -541,7 +541,7 @@ function moveSGA(){
 }
 function moveBall(){
     const spots = poseBallSpots[currentPose] || poseBallSpots.dribble; const spot = spots[Math.floor(Math.random() * spots.length)];
-    const shrink = Math.max(.68, 1 - combo * .018); const size = Math.round(72 * spot.scale * shrink);
+    const shrink = Math.max(.68, 1 - combo * .018); const size = Math.round(100 * spot.scale * shrink);
     ball.style.width = `${size}px`; ball.style.height = `${size}px`; ball.style.left = `${spot.x}px`; ball.style.top = `${spot.y}px`;
 }
 function stealBall(){
