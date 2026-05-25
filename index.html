@@ -582,9 +582,17 @@ applyBallSkin(); renderPalette(); updateHud();
 </script>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-app.js";
-    import { getDatabase, ref, push, query, orderByChild, limitToLast, onValue } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
+import {
+    getDatabase,
+    ref,
+    push,
+    query,
+    orderByChild,
+    limitToLast,
+    onValue
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
     const firebaseConfig = {
         apiKey: "AIzaSyDPz3EYOaJK88UYoVVVwVmPcn_ctWBYo1k",
         authDomain: "steal-sga.firebaseapp.com",
