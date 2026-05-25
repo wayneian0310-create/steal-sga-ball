@@ -269,4 +269,412 @@ button{ font:inherit; }
 #referee{ position:fixed; right:22px; bottom:18px; z-index:21; width:128px; height:178px; pointer-events:none; transform-origin:50% 100%; }
 .refCall{ position:absolute; right:74px; top:10px; min-width:132px; padding:8px 10px; border-radius:8px; background:rgba(7,11,18,.82); border:1px solid rgba(255,255,255,.24); color:var(--red); font-size:16px; font-weight:900; text-align:center; opacity:0; transform:translateY(8px) scale(.9); }
 .refHead{ position:absolute; left:43px; top:22px; width:48px; height:52px; border-radius:50%; background:#d59a74; border:3px solid #221714; }
-.refBody{ position:absolute; left:35px; top:70px; width:64px; height:88px; border:3px solid #1
+.refBody{ position:absolute; left:35px; top:70px; width:64px; height:88px; border:3px solid #111; border-radius:16px 16px 10px 10px; background:repeating-linear-gradient(90deg,#f5f5f5 0 9px,#111 9px 18px); }
+.refArm{ position:absolute; left:64px; top:74px; width:22px; height:82px; border-radius:18px; background:#d59a74; border:3px solid #221714; transform-origin:50% 12px; transform:rotate(-48deg); }
+.refWhistle{ position:absolute; left:80px; top:56px; width:18px; height:11px; border-radius:8px; background:#d9e0eb; border:2px solid #111; }
+.refLegs{ position:absolute; left:45px; top:150px; width:46px; height:22px; border-radius:0 0 12px 12px; background:#111827; }
+
+#referee.blowing{ animation:refPop .32s ease; }
+#referee.blowing .refArm{ animation:refArmWave .22s ease-in-out 4; }
+#referee.blowing .refWhistle{ animation:whistlePulse .1s ease-in-out 8; }
+#referee.blowing .refCall{ animation:callBubble .7s ease forwards; }
+
+@keyframes refPop{ 0%,100%{transform:scale(1);} 40%{transform:scale(1.08);} }
+@keyframes refArmWave{ 0%,100%{transform:rotate(-48deg);} 50%{transform:rotate(-18deg);} }
+@keyframes whistlePulse{ 0%,100%{box-shadow:0 0 0 rgba(255,255,255,0);} 50%{box-shadow:0 0 0 12px rgba(255,255,255,.22);} }
+@keyframes callBubble{ 0%{opacity:0;transform:translateY(8px) scale(.9);} 18%,78%{opacity:1;transform:translateY(0) scale(1);} 100%{opacity:0;transform:translateY(-6px) scale(.96);} }
+
+.overlay{ position:fixed; inset:0; z-index:50; display:grid; place-items:center; padding:22px; background:radial-gradient(circle at 50% 35%, rgba(47,120,183,.36), transparent 0 38%), rgba(3,5,9,.88); }
+.panel{ width:min(94vw,720px); max-height:calc(100vh - 44px); overflow:auto; border:1px solid rgba(255,255,255,.18); border-radius:8px; background:var(--panel); box-shadow:0 28px 90px rgba(0,0,0,.45); backdrop-filter:blur(14px); padding:26px; text-align:center; }
+.eyebrow{ color:var(--green); font-size:14px; font-weight:800; letter-spacing:2px; text-transform:uppercase; }
+h1{ margin:10px 0 12px; font-size:clamp(44px,10vw,86px); line-height:.88; letter-spacing:0; }
+.subtitle{ max-width:470px; margin:0 auto 22px; color:#dbe5f5; font-size:18px; line-height:1.55; }
+.rules{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:18px 0 22px; }
+.rule{ min-height:86px; padding:12px 10px; border:1px solid rgba(255,255,255,.14); border-radius:8px; background:rgba(255,255,255,.06); }
+.rule b{ display:block; margin-bottom:6px; font-size:16px; }
+.rule span{ display:block; color:#c9d3e4; font-size:13px; line-height:1.35; }
+
+.primaryBtn, .ghostBtn{ min-width:188px; min-height:56px; border:0; border-radius:8px; padding:0 22px; font-size:20px; font-weight:900; cursor:pointer; }
+.primaryBtn{ color:#051112; background:var(--green); box-shadow:0 10px 0 #10a864, 0 22px 34px rgba(0,0,0,.25); }
+.primaryBtn:active{ transform:translateY(5px); box-shadow:0 5px 0 #10a864, 0 15px 28px rgba(0,0,0,.22); }
+.primaryBtn:disabled{ background:#666; box-shadow:none; cursor:not-allowed; color:#aaa; }
+.ghostBtn{ margin-left:8px; color:#fff; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.22); }
+#endOverlay{ display:none; }
+#endStats{ display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; margin:18px 0 22px; }
+.statBox{ min-height:82px; padding:11px 8px; border:1px solid rgba(255,255,255,.14); border-radius:8px; background:rgba(255,255,255,.06); }
+.statBox span{ display:block; color:var(--muted); font-size:12px; }
+.statBox b{ display:block; margin-top:7px; font-size:28px; font-variant-numeric:tabular-nums; }
+#mobileHint{ position:fixed; left:50%; bottom:14px; z-index:18; transform:translateX(-50%); width:min(92vw,560px); padding:10px 14px; border-radius:8px; background:rgba(7,11,18,.62); color:#d8e1ee; font-size:14px; text-align:center; backdrop-filter:blur(8px); }
+
+/* 排行榜專用 CSS */
+#leaderboardInputArea { margin: 20px 0; padding: 15px; background: rgba(255,255,255,.06); border-radius: 8px; border: 1px solid rgba(255,255,255,.14); display: flex; gap: 8px; }
+#nicknameInput { flex-grow: 1; padding: 10px; border-radius: 5px; border: 1px solid rgba(255,255,255,.3); outline: none; background: rgba(0,0,0,.3); color: #fff; font-size: 16px; }
+#leaderboardDisplayArea { margin-bottom: 20px; text-align: left; }
+#leaderboardList li { display: flex; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.1); background: rgba(0,0,0,.2); }
+#leaderboardList li:nth-child(even) { background: rgba(255,255,255,.02); }
+#leaderboardList li:last-child { border-bottom: none; }
+
+@media (max-width:720px){
+    #hud{ grid-template-columns:repeat(3,minmax(0,1fr)); max-width:none; }
+    .hudItem{ min-height:50px; padding:8px 10px; }
+    .hudValue{ font-size:21px; }
+    #message{ top:126px; min-height:58px; }
+    #sga{ --sga-scale:.76; }
+    #referee{ right:8px; bottom:58px; transform:scale(.72); }
+    .refCall{ right:70px; min-width:118px; font-size:13px; }
+    .rules, #endStats{ grid-template-columns:1fr; }
+    .panel{ padding:20px; }
+    .subtitle{ font-size:16px; }
+    .primaryBtn, .ghostBtn{ width:100%; margin:0; }
+    .ghostBtn{ margin-top:10px; }
+    #leaderboardInputArea { flex-direction: column; }
+}
+@media (max-height:620px){ #mobileHint{ display:none; } #message{ top:82px; } }
+</style>
+</head>
+
+<body>
+<main id="gameArea" aria-label="Steal From SGA 遊戲區">
+    <div id="courtLines"></div>
+    <div class="paint left"></div><div class="paint right"></div>
+    <div class="arc left"></div><div class="arc right"></div>
+
+    <section id="hud" aria-live="polite">
+        <div class="hudItem"><span class="hudLabel">Score</span><span class="hudValue" id="score">0</span></div>
+        <div class="hudItem"><span class="hudLabel">Combo</span><span class="hudValue" id="combo">0</span></div>
+        <div class="hudItem"><span class="hudLabel">Fouls</span><span class="hudValue"><span id="fouls">0</span>/6</span></div>
+        <div class="hudItem"><span class="hudLabel">Time</span><span class="hudValue" id="time">45.0</span></div>
+        <div class="hudItem"><span class="hudLabel">Tokens</span><span class="hudValue" id="tokens">0</span></div>
+    </section>
+
+    <div id="message"></div>
+
+    <div id="sga" class="pose-dribble" aria-label="SGA 持球者">
+        <div id="shadow"></div>
+        <img class="sgaPhoto photo-dribble" src="assets/sga-dribble.jpeg" alt="">
+        <img class="sgaPhoto photo-stand" src="assets/sga-standing.jpeg" alt="">
+        <img class="sgaPhoto photo-fall" src="assets/sga-fall.jpeg" alt="">
+        <div id="legs"><span class="shoe left"></span><span class="shoe right"></span></div>
+        <div id="shorts"></div><div class="arm left"></div><div class="arm right"></div>
+        <div id="body" aria-label="身體，點到會犯規"></div>
+        <div id="head" aria-label="頭部，點到會被驅逐"></div>
+        <div id="headband"></div><div id="hair"></div><div id="beard"></div>
+        <span class="eye left"></span><span class="eye right"></span><span class="mouth"></span>
+        <div id="ball" aria-label="籃球，點擊偷球"><div id="targetRing"></div></div>
+    </div>
+
+    <div id="referee" aria-hidden="true">
+        <div class="refCall">SHOOTING FOUL</div>
+        <div class="refHead"></div><div class="refBody"></div><div class="refArm"></div>
+        <div class="refWhistle"></div><div class="refLegs"></div>
+    </div>
+
+    <div id="mobileHint">點球偷球，點身體犯規，點頭直接出場。連續成功會加分更快。</div>
+</main>
+
+<div class="overlay" id="menu">
+    <div class="panel">
+        <div class="eyebrow">fast hands challenge</div>
+        <h1>STEAL<br>FROM SGA</h1>
+        <p class="subtitle">在時間內只點籃球。手太慢會斷連擊，碰到身體就是犯規，碰到頭直接 Flagrant 2。</p>
+        <div class="rules">
+            <div class="rule"><b>偷球</b><span>點到球加分，連擊越高分數越兇。</span></div>
+            <div class="rule"><b>犯規</b><span>點到身體會歸零連擊，6 次犯滿離場。</span></div>
+            <div class="rule"><b>驅逐</b><span>點到頭就是 Flagrant 2，遊戲立刻結束。</span></div>
+        </div>
+        <aside id="shop" aria-label="球色商店">
+            <div class="shopTop"><span class="shopLabel">Tokens</span><strong id="shopTokens">0</strong></div>
+            <div id="palette" aria-label="彩虹球色"></div>
+        </aside>
+        <button class="primaryBtn" id="startBtn">開始遊戲</button>
+    </div>
+</div>
+
+<div class="overlay" id="endOverlay" role="dialog" aria-modal="true" aria-labelledby="endTitle">
+    <div class="panel">
+        <div class="eyebrow" id="endReason">game over</div>
+        <h1 id="endTitle">FINAL BUZZER</h1>
+        <div id="endStats">
+            <div class="statBox"><span>Score</span><b id="finalScore">0</b></div>
+            <div class="statBox"><span>Best</span><b id="bestScore">0</b></div>
+            <div class="statBox"><span>Steals</span><b id="finalSteals">0</b></div>
+            <div class="statBox"><span>Tokens</span><b id="finalTokens">0</b></div>
+            <div class="statBox"><span>Earned</span><b id="finalEarned">0</b></div>
+        </div>
+
+        <div id="leaderboardInputArea">
+            <input type="text" id="nicknameInput" placeholder="輸入暱稱留名 (最多10字)" maxlength="10">
+            <button class="primaryBtn" id="submitScoreBtn" style="min-width: 120px; font-size: 16px;">上傳分數</button>
+        </div>
+
+        <div id="leaderboardDisplayArea">
+            <h3 style="color: var(--green); margin-bottom: 10px; font-size: 16px; text-transform: uppercase; letter-spacing: 1px;">🔥 雲端排行榜 (Top 10)</h3>
+            <ul id="leaderboardList" style="list-style: none; padding: 0; margin: 0; max-height: 160px; overflow-y: auto; color: #dbe5f5; font-size: 14px;">
+                <li style="justify-content:center;">讀取中...</li>
+            </ul>
+        </div>
+
+        <button class="primaryBtn" id="restartBtn">再玩一次</button>
+        <button class="ghostBtn" id="menuBtn">回主畫面</button>
+    </div>
+</div>
+
+<script>
+const menu = document.getElementById("menu");
+const endOverlay = document.getElementById("endOverlay");
+const startBtn = document.getElementById("startBtn");
+const restartBtn = document.getElementById("restartBtn");
+const menuBtn = document.getElementById("menuBtn");
+const gameArea = document.getElementById("gameArea");
+const sga = document.getElementById("sga");
+const ball = document.getElementById("ball");
+const body = document.getElementById("body");
+const head = document.getElementById("head");
+const scoreText = document.getElementById("score");
+const comboText = document.getElementById("combo");
+const foulText = document.getElementById("fouls");
+const timeText = document.getElementById("time");
+const tokenText = document.getElementById("tokens");
+const message = document.getElementById("message");
+const shopTokens = document.getElementById("shopTokens");
+const palette = document.getElementById("palette");
+const referee = document.getElementById("referee");
+const endReason = document.getElementById("endReason");
+const endTitle = document.getElementById("endTitle");
+const finalScore = document.getElementById("finalScore");
+const bestScore = document.getElementById("bestScore");
+const finalSteals = document.getElementById("finalSteals");
+const finalTokens = document.getElementById("finalTokens");
+const finalEarned = document.getElementById("finalEarned");
+
+let score = 0, combo = 0, fouls = 0, steals = 0, timeLeft = 45;
+let gameRunning = false, moveTimer = 0, clockTimer = 0, messageTimer = 0, stunTimer = 0;
+let audioContext = null;
+let best = Number(localStorage.getItem("stealFromSgaBest") || 0);
+let tokens = Number(localStorage.getItem("stealFromSgaTokens") || 0);
+let ownedColors = loadOwnedColors();
+let selectedColor = localStorage.getItem("stealFromSgaBallColor") || "orange";
+let currentPose = "dribble", earnedThisGame = 0, stunned = false;
+
+const poses = ["dribble", "shot", "fake"];
+const ballSkins = [
+    {id:"red", name:"紅", color:"#ff3b30", highlight:"#ffc2bd", glow:"rgba(255,59,48,.42)"},
+    {id:"orange", name:"橙", color:"#f28c28", highlight:"#ffd19a", glow:"rgba(242,140,40,.35)"},
+    {id:"yellow", name:"黃", color:"#ffd60a", highlight:"#fff1a8", glow:"rgba(255,214,10,.42)"},
+    {id:"green", name:"綠", color:"#34c759", highlight:"#b8ffd0", glow:"rgba(52,199,89,.42)"},
+    {id:"blue", name:"藍", color:"#0a84ff", highlight:"#b8dcff", glow:"rgba(10,132,255,.42)"},
+    {id:"indigo", name:"靛", color:"#4b5cff", highlight:"#c9ceff", glow:"rgba(75,92,255,.42)"},
+    {id:"violet", name:"紫", color:"#bf5af2", highlight:"#edc5ff", glow:"rgba(191,90,242,.42)"}
+];
+
+const legacyBankedScore = Number(localStorage.getItem("stealFromSgaBankedScore") || 0);
+if(legacyBankedScore > 0){ tokens += legacyBankedScore; localStorage.setItem("stealFromSgaTokens", String(tokens)); localStorage.removeItem("stealFromSgaBankedScore"); }
+const poseBallSpots = { dribble:[{x:-24,y:352,scale:1},{x:18,y:360,scale:.9},{x:150,y:326,scale:.9}], shot:[{x:84,y:-30,scale:.86},{x:108,y:-18,scale:.82}], fake:[{x:-34,y:220,scale:.95},{x:156,y:204,scale:.9},{x:104,y:144,scale:.82}] };
+if(!ownedColors.includes(selectedColor)) selectedColor = "orange";
+if(!ownedColors.includes("orange")) ownedColors.push("orange");
+
+const foulTargets = [body, ...document.querySelectorAll(".arm")];
+foulTargets.forEach(target => target.addEventListener("pointerdown", e => { e.stopPropagation(); if(!gameRunning || stunned) return; callFoul("SHOOTING FOUL!"); }));
+palette.addEventListener("click", e => { const btn = e.target.closest("[data-skin]"); if(btn) chooseBallColor(btn.dataset.skin); });
+startBtn.addEventListener("click", startGame);
+restartBtn.addEventListener("click", startGame);
+menuBtn.addEventListener("click", showMenu);
+ball.addEventListener("pointerdown", e => { e.stopPropagation(); if(!gameRunning || stunned) return; stealBall(); });
+head.addEventListener("pointerdown", e => { e.stopPropagation(); if(!gameRunning || stunned) return; showMessage("FLAGRANT 2", "var(--yellow)"); playTone(120, .18, "sawtooth"); setTimeout(() => endGame("EJECTED", "FLAGRANT 2"), 360); });
+gameArea.addEventListener("pointerdown", e => { if(!gameRunning || stunned || e.target !== gameArea) return; combo = 0; updateHud(); showMessage("WHIFF", "#dce6f7"); playTone(180, .08, "triangle"); });
+window.addEventListener("resize", () => { if(gameRunning) moveSGA(); });
+
+function startGame(){
+    score = 0; combo = 0; fouls = 0; steals = 0; earnedThisGame = 0; timeLeft = 45; gameRunning = true; stunned = false;
+    clearTimeout(stunTimer); menu.style.display = "none"; endOverlay.style.display = "none";
+    referee.classList.remove("blowing"); sga.classList.remove("fallen"); ball.classList.remove("locked"); ball.classList.add("hot");
+    setPose("dribble"); updateHud(); moveSGA();
+    clearInterval(moveTimer); clearInterval(clockTimer);
+    moveTimer = setInterval(moveSGA, 720); clockTimer = setInterval(tickClock, 100);
+    showMessage("GO!", "var(--green)"); playTone(560, .12, "square");
+}
+function showMenu(){ gameRunning = false; stunned = false; clearTimeout(stunTimer); clearInterval(moveTimer); clearInterval(clockTimer); endOverlay.style.display = "none"; menu.style.display = "grid"; ball.classList.remove("hot"); updateHud(); renderPalette(); }
+function tickClock(){ if(!gameRunning) return; timeLeft = Math.max(0, timeLeft - .1); timeText.textContent = timeLeft.toFixed(1); if(timeLeft <= 0) endGame("FINAL BUZZER", "TIME'S UP"); }
+function moveSGA(){
+    if(!gameRunning || stunned) return;
+    const rect = sga.getBoundingClientRect(); const safeTop = window.innerWidth <= 720 ? 118 : 150; const bottomReserve = window.innerWidth <= 720 ? 236 : 32;
+    const maxX = Math.max(0, window.innerWidth - rect.width - 24); const maxY = Math.max(safeTop, window.innerHeight - rect.height - bottomReserve);
+    const x = 12 + Math.random() * Math.max(1, maxX - 12); const y = safeTop + Math.random() * Math.max(1, maxY - safeTop);
+    const lean = Math.random() > .5 ? 1 : -1;
+    setPose(poses[Math.floor(Math.random() * poses.length)]); sga.style.left = `${x}px`; sga.style.top = `${y}px`; sga.style.setProperty("--lean", `${lean * Math.min(5, combo + 1)}deg`); moveBall();
+}
+function moveBall(){
+    const spots = poseBallSpots[currentPose] || poseBallSpots.dribble; const spot = spots[Math.floor(Math.random() * spots.length)];
+    const shrink = Math.max(.68, 1 - combo * .018); const size = Math.round(72 * spot.scale * shrink);
+    ball.style.width = `${size}px`; ball.style.height = `${size}px`; ball.style.left = `${spot.x}px`; ball.style.top = `${spot.y}px`;
+}
+function stealBall(){
+    if(stunned) return; combo += 1; steals += 1; const gain = 100 + Math.min(combo * 15, 240); score += gain; updateHud();
+    showMessage(combo >= 5 ? `${combo}X STEAL!` : "STEAL!", "var(--green)"); playTone(440 + Math.min(combo * 35, 420), .07, "sine"); pulse(ball); moveBall();
+    if(combo % 5 === 0){ clearInterval(moveTimer); moveTimer = setInterval(moveSGA, Math.max(360, 720 - combo * 20)); }
+}
+function callFoul(text){
+    if(stunned) return; fouls += 1; combo = 0; updateHud(); showMessage(text, "var(--red)"); playFoulAudio(); animateReferee(); stunSGA(fouls >= 6);
+    document.body.classList.add("flash"); setTimeout(() => document.body.classList.remove("flash"), 280);
+}
+function updateHud(){ scoreText.textContent = score; comboText.textContent = combo; foulText.textContent = fouls; timeText.textContent = timeLeft.toFixed(1); tokenText.textContent = tokens; shopTokens.textContent = tokens; }
+function showMessage(text, color){ clearTimeout(messageTimer); message.textContent = text; message.style.color = color; pulse(message); messageTimer = setTimeout(() => message.textContent = "", 540); }
+function pulse(element){ element.classList.remove("pop"); void element.offsetWidth; element.classList.add("pop"); }
+function stunSGA(shouldEndGame){
+    stunned = true; clearTimeout(stunTimer); sga.classList.remove("pose-dribble", "pose-shot", "pose-fake"); sga.classList.add("fallen"); ball.classList.add("locked");
+    stunTimer = setTimeout(() => { stunned = false; sga.classList.remove("fallen"); ball.classList.remove("locked"); setPose("dribble"); if(shouldEndGame) endGame("FOULED OUT", "6 FOULS"); else moveSGA(); }, 2000);
+}
+function endGame(reason, title){
+    if(!gameRunning) return; gameRunning = false; stunned = false; clearTimeout(stunTimer); clearInterval(moveTimer); clearInterval(clockTimer);
+    ball.classList.remove("hot", "locked"); sga.classList.remove("fallen"); earnedThisGame = score; tokens += earnedThisGame; saveEconomy();
+    best = Math.max(best, score); localStorage.setItem("stealFromSgaBest", String(best));
+    endReason.textContent = reason; endTitle.textContent = title; finalScore.textContent = score; bestScore.textContent = best; finalSteals.textContent = steals; finalTokens.textContent = tokens; finalEarned.textContent = `+${earnedThisGame}`;
+    updateHud(); renderPalette();
+
+    window.currentScore = score;
+    if(window.loadLeaderboard) window.loadLeaderboard();
+    const btn = document.getElementById('submitScoreBtn');
+    if(btn) { btn.disabled = false; btn.textContent = '上傳分數'; }
+    const input = document.getElementById('nicknameInput');
+    if(input) input.value = '';
+
+    setTimeout(() => endOverlay.style.display = "grid", 280);
+}
+function setPose(pose){ currentPose = pose; sga.classList.remove("pose-dribble", "pose-shot", "pose-fake"); sga.classList.add(`pose-${pose}`); }
+function loadOwnedColors(){ try{ const saved = JSON.parse(localStorage.getItem("stealFromSgaOwnedColors") || "[]"); return Array.isArray(saved) && saved.length ? saved : ["orange"]; }catch(e){ return ["orange"]; } }
+function saveEconomy(){ localStorage.setItem("stealFromSgaTokens", String(tokens)); localStorage.removeItem("stealFromSgaBankedScore"); localStorage.setItem("stealFromSgaOwnedColors", JSON.stringify(ownedColors)); localStorage.setItem("stealFromSgaBallColor", selectedColor); }
+function renderPalette(){
+    palette.innerHTML = "";
+    ballSkins.forEach(skin => {
+        const btn = document.createElement("button"); const owned = ownedColors.includes(skin.id);
+        btn.type = "button"; btn.className = `colorBtn${owned ? "" : " locked"}${selectedColor === skin.id ? " selected" : ""}`; btn.dataset.skin = skin.id; btn.dataset.cost = "1";
+        btn.style.setProperty("--swatch", skin.color); btn.setAttribute("aria-label", `${skin.name}色`); btn.textContent = selectedColor === skin.id ? "✓" : ""; palette.appendChild(btn);
+    });
+}
+function chooseBallColor(skinId){
+    const skin = ballSkins.find(i => i.id === skinId); if(!skin) return;
+    if(!ownedColors.includes(skinId)){
+        if(tokens < 1){ showMessage("NEED TOKEN", "var(--yellow)"); playTone(150, .1, "triangle"); return; }
+        tokens -= 1; ownedColors.push(skinId); showMessage("COLOR UNLOCKED", "var(--green)"); playTone(740, .08, "sine");
+    }
+    selectedColor = skinId; applyBallSkin(); saveEconomy(); updateHud(); renderPalette();
+}
+function applyBallSkin(){ const skin = ballSkins.find(i => i.id === selectedColor) || ballSkins[1]; document.documentElement.style.setProperty("--ball-color", skin.color); document.documentElement.style.setProperty("--ball-highlight", skin.highlight); document.documentElement.style.setProperty("--ball-glow", skin.glow); }
+function animateReferee(){ referee.classList.remove("blowing"); void referee.offsetWidth; referee.classList.add("blowing"); setTimeout(() => referee.classList.remove("blowing"), 1100); }
+function playFoulAudio(){ playWhistle(); speakShootingFoul(); }
+function playWhistle(){
+    try{ audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)(); audioContext.resume(); const now = audioContext.currentTime; chirp(now, .12, 760, 1120, "square", .15); chirp(now + .14, .1, 660, 980, "square", .14); chirp(now + .28, .16, 540, 820, "sawtooth", .11); }
+    catch(e){ playTone(740, .12, "square"); }
+}
+function chirp(start, duration, from, to, type, volume){
+    const osc = audioContext.createOscillator(); const gain = audioContext.createGain(); osc.type = type; osc.frequency.setValueAtTime(from, start); osc.frequency.exponentialRampToValueAtTime(to, start + duration);
+    gain.gain.setValueAtTime(.0001, start); gain.gain.exponentialRampToValueAtTime(volume, start + .01); gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
+    osc.connect(gain); gain.connect(audioContext.destination); osc.start(start); osc.stop(start + duration + .02);
+}
+function speakShootingFoul(){ if(!("speechSynthesis" in window)) return; const call = new SpeechSynthesisUtterance("Shooting foul!"); call.lang = "en-US"; call.rate = 1.12; call.pitch = .28; window.speechSynthesis.cancel(); window.speechSynthesis.speak(call); }
+function playTone(freq, dur, type){
+    try{ audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)(); const osc = audioContext.createOscillator(); const gain = audioContext.createGain(); osc.type = type; osc.frequency.value = freq;
+    gain.gain.setValueAtTime(.04, audioContext.currentTime); gain.gain.exponentialRampToValueAtTime(.001, audioContext.currentTime + dur); osc.connect(gain); gain.connect(audioContext.destination); osc.start(); osc.stop(audioContext.currentTime + dur); }
+    catch(e){ audioContext = null; }
+}
+
+applyBallSkin(); renderPalette(); updateHud();
+</script>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-app.js";
+    import { getDatabase, ref, push, query, orderByChild, limitToLast, onValue } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDPz3EYOaJK88UYoVVVwVmPcn_ctWBYo1k",
+        authDomain: "steal-sga.firebaseapp.com",
+        databaseURL: "https://steal-sga-default-rtdb.firebaseio.com",
+        projectId: "steal-sga",
+        storageBucket: "steal-sga.firebasestorage.app",
+        messagingSenderId: "685968249700",
+        appId: "1:685968249700:web:7bbb924a1bd9e39c1be071",
+        measurementId: "G-JTMDBJTNV1"
+    };
+
+    let app, db, scoresRef;
+    try {
+        app = initializeApp(firebaseConfig);
+        db = getDatabase(app);
+        scoresRef = ref(db, 'scores');
+    } catch (e) {
+        console.warn("Firebase 初始化失敗", e);
+    }
+
+    window.loadLeaderboard = function() {
+        if (!scoresRef) return;
+        const leaderboardList = document.getElementById('leaderboardList');
+        const topScoresQuery = query(scoresRef, orderByChild('score'), limitToLast(10));
+
+        onValue(topScoresQuery, (snapshot) => {
+            const scoresData = [];
+            snapshot.forEach((childSnapshot) => {
+                scoresData.push(childSnapshot.val());
+            });
+
+            scoresData.sort((a, b) => b.score - a.score);
+            leaderboardList.innerHTML = '';
+
+            if (scoresData.length === 0) {
+                leaderboardList.innerHTML = '<li style="justify-content:center;">目前還沒有人留名，快來當第一名！</li>';
+                return;
+            }
+
+            scoresData.forEach((data, index) => {
+                const listItem = document.createElement('li');
+                let rankIcon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+                listItem.innerHTML = `
+                    <span><span style="display:inline-block; width:24px;">${rankIcon}</span> <strong>${data.nickname}</strong></span>
+                    <span style="font-family: monospace; font-size: 16px; color: var(--yellow);">${data.score} 分</span>
+                `;
+                leaderboardList.appendChild(listItem);
+            });
+        }, (error) => {
+            console.error("讀取排行榜失敗:", error);
+            document.getElementById('leaderboardList').innerHTML = '<li style="justify-content:center; color: var(--red);">讀取失敗</li>';
+        });
+    };
+
+    const submitBtn = document.getElementById('submitScoreBtn');
+    if (submitBtn) {
+        submitBtn.addEventListener('click', async () => {
+            const nicknameInput = document.getElementById('nicknameInput');
+            const nickname = nicknameInput.value.trim();
+            const currentScore = window.currentScore || 0;
+
+            if (!scoresRef) {
+                alert("Firebase 未連線！");
+                return;
+            }
+
+            if (nickname && currentScore > 0) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = '上傳中...';
+                try {
+                    await push(scoresRef, {
+                        nickname: nickname,
+                        score: currentScore,
+                        timestamp: Date.now()
+                    });
+                    nicknameInput.value = '';
+                    submitBtn.textContent = '已上傳 ✔';
+                } catch (error) {
+                    console.error("上傳失敗: ", error);
+                    alert('上傳失敗，請檢查資料庫權限');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '重新上傳';
+                }
+            } else if (currentScore === 0) {
+                alert('分數為 0 不能上傳喔！');
+            } else {
+                alert('請先輸入你要留名的暱稱！');
+            }
+        });
+    }
+</script>
+</body>
+</html>
