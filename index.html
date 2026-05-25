@@ -513,8 +513,14 @@ button{
     transform:rotate(-22deg);
 }
 
-#sga.pose-dribble #body{
-    transform:translateY(5px) rotate(1deg);
+/* =========================================
+   G 重新設計的物理動畫區塊
+========================================= */
+
+#sga.pose-dribble #body,
+#sga.pose-dribble .sgaPhoto.photo-dribble {
+    /* 加入身體跟隨運球節奏的起伏 */
+    animation: bodyBob .45s ease-in-out infinite alternate;
 }
 
 #sga.pose-dribble .arm.left{
@@ -575,7 +581,7 @@ button{
 }
 
 #sga.pose-shot #ball{
-    animation:shotFloat .8s ease-in-out infinite alternate;
+    animation:shotArc 1s cubic-bezier(0.2, 0.8, 0.4, 1) infinite;
 }
 
 #sga.pose-fake #body{
@@ -626,7 +632,8 @@ button{
     width:340px;
     height:230px;
     cursor:default;
-    animation:fallRoll 2s ease-in-out forwards;
+    /* 改為重摔滑動 */
+    animation:fallDrop 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 #sga.fallen #body,
@@ -641,13 +648,48 @@ button{
     filter:grayscale(.35);
 }
 
-@keyframes fallRoll{
-    0%{transform:rotate(var(--lean)) scale(var(--sga-scale));}
-    18%{transform:translateY(58px) rotate(-82deg) scale(var(--sga-scale));}
-    42%{transform:translateY(68px) translateX(22px) rotate(-196deg) scale(var(--sga-scale));}
-    68%{transform:translateY(60px) translateX(-12px) rotate(-322deg) scale(var(--sga-scale));}
-    100%{transform:translateY(58px) rotate(-360deg) scale(var(--sga-scale));}
+/* =========================================
+   核心 Keyframes 替換
+========================================= */
+
+/* 倒地：製造進攻犯規 / 重摔滑動 */
+@keyframes fallDrop {
+    0% { transform: rotate(var(--lean)) scale(var(--sga-scale)) translateY(0); }
+    15% { transform: rotate(-10deg) scale(var(--sga-scale)) translateY(-15px); } /* 撞擊瞬間稍微彈起 */
+    40% { transform: rotate(-75deg) scale(var(--sga-scale)) translateY(70px) translateX(-20px); } /* 重摔著地 */
+    100% { transform: rotate(-82deg) scale(var(--sga-scale)) translateY(75px) translateX(-45px); } /* 地板摩擦滑行 */
 }
+
+/* 身體起伏：隨運球節奏上下 */
+@keyframes bodyBob {
+    0% { transform: translateY(0px) rotate(1deg); }
+    100% { transform: translateY(8px) rotate(2deg); }
+}
+
+/* 運球：加入重力與觸地形變(Squish) */
+@keyframes dribbleBounce {
+    0% { transform: translateY(-15px) scale(1); }
+    75% { transform: translateY(18px) scale(0.95, 1.05); } /* 下落時受重力拉長 */
+    90% { transform: translateY(26px) scale(1.15, 0.8); } /* 觸地瞬間壓扁 */
+    100% { transform: translateY(20px) scale(1, 1); } /* 反彈 */
+}
+
+/* 投籃：真實的拋物線與強烈後旋 */
+@keyframes shotArc {
+    0% { transform: translateY(10px) translateX(0) rotate(0deg) scale(1); opacity: 1; }
+    40% { transform: translateY(-60px) translateX(15px) rotate(-180deg) scale(0.9); opacity: 1; } /* 拋物線頂點 */
+    80% { transform: translateY(-10px) translateX(25px) rotate(-360deg) scale(0.8); opacity: 0; } /* 落入籃框並淡出 */
+    100% { transform: translateY(10px) translateX(0) rotate(0deg) scale(1); opacity: 0; }
+}
+
+/* 假動作：極具爆發力的急停與拉回 */
+@keyframes fakeJab {
+    0% { transform: translateX(0) scale(1) skewX(0deg); }
+    30% { transform: translateX(-24px) scale(0.96) skewX(-6deg); } /* 瞬間刺探步 */
+    60% { transform: translateX(6px) scale(1.02) skewX(2deg); } /* 快速拉回 */
+    100% { transform: translateX(0) scale(1) skewX(0deg); }
+}
+
 
 #ball:hover{
     transform:scale(1.08);
@@ -710,21 +752,6 @@ button{
 @keyframes ballPop{
     0%{transform:scale(.82);}
     100%{transform:scale(1);}
-}
-
-@keyframes dribbleBounce{
-    0%{transform:translateY(-4px) scale(1);}
-    100%{transform:translateY(22px) scale(.96);}
-}
-
-@keyframes shotFloat{
-    0%{transform:translateY(0) rotate(-8deg);}
-    100%{transform:translateY(-14px) rotate(8deg);}
-}
-
-@keyframes fakeJab{
-    0%{transform:translateX(0) scale(1);}
-    100%{transform:translateX(-18px) scale(.96);}
 }
 
 #shop{
