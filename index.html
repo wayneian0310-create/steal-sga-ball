@@ -488,8 +488,8 @@ const ballSkins = [
     {id:"blue", name:"藍", color:"#0a84ff", highlight:"#b8dcff", glow:"rgba(10,132,255,.42)", cost:1},
     {id:"indigo", name:"靛", color:"#4b5cff", highlight:"#c9ceff", glow:"rgba(75,92,255,.42)", cost:1},
     {id:"violet", name:"紫", color:"#bf5af2", highlight:"#edc5ff", glow:"rgba(191,90,242,.42)", cost:2},
-    {id:"gold", name:"黃金", color:"#d4af37", highlight:"#fff3cc", glow:"rgba(212,175,55,.6)", cost:300} // 新增的黃金限量球皮
-    {id:"curry", name:"老詹", type:"image", src:"<a href=https://ibb.co/WWm5PB5j"><img src="https://i.ibb.co/tMVKxYKF/ball-png.png" alt="ball-png" border="0"></a>", cost:500}
+    {id:"gold", name:"黃金", color:"#d4af37", highlight:"#fff3cc", glow:"rgba(212,175,55,.6)", cost:300}, // 修正：補上逗號了
+    {id:"james", name:"老詹", type:"image", src:"https://i.ibb.co/tMVKxYKF/ball-png.png", cost:500} // 修正：改成純網址、換了唯一ID
 ];
 
 const legacyBankedScore = Number(localStorage.getItem("stealFromSgaBankedScore") || 0);
