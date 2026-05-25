@@ -483,8 +483,8 @@ let currentPose = "dribble", earnedThisGame = 0, stunned = false;
 const poses = ["dribble", "shot", "fake"];
 
 const ballSkins = [
-    {id:"classic", name:"橘子", type:"image", src:"assets/ball.png", cost:0},
-    {id:"curry", name:"咖哩", type:"image", src:"https://img.icons8.com/emoji/96/basketball-emoji.png", cost:1},
+    {id:"classic", name:"籃球", type:"image", src:"https://img.icons8.com/emoji/96/basketball-emoji.png", cost:0},
+    {id:"curry", name:"咖哩", type:"image", src:"https://i.ibb.co/MxZKWCSv/copy-5-AECA0-D6-6057-45-FE-BA3-F-68160741-B2-DF.png", cost:1},
     {id:"red", name:"紅球", color:"#ff3b30", highlight:"#ffc2bd", glow:"rgba(255,59,48,.42)", cost:1},
     {id:"orange", name:"橙球", color:"#f28c28", highlight:"#ffd19a", glow:"rgba(242,140,40,.35)", cost:1},
     {id:"yellow", name:"黃球", color:"#ffd60a", highlight:"#fff1a8", glow:"rgba(255,214,10,.42)", cost:1},
@@ -493,7 +493,8 @@ const ballSkins = [
     {id:"indigo", name:"靛球", color:"#4b5cff", highlight:"#c9ceff", glow:"rgba(75,92,255,.42)", cost:1},
     {id:"violet", name:"紫球", color:"#bf5af2", highlight:"#edc5ff", glow:"rgba(191,90,242,.42)", cost:2},
     {id:"gold", name:"黃金", color:"#d4af37", highlight:"#fff3cc", glow:"rgba(212,175,55,.6)", cost:300},
-    {id:"james", name:"老詹", type:"image", src:"https://i.ibb.co/tMVKxYKF/ball-png.png", cost:500}
+    {id:"james", name:"老詹", type:"image", src:"https://i.ibb.co/tMVKxYKF/ball-png.png", cost:500},
+    {id:"james", name:"大谷", type:"image", src:"https://i.ibb.co/5XYPctTh/copy-14838-BC6-10-DB-40-CF-BA52-9-F835-B674454.png", cost:3000}
 ];
 
 const legacyBankedScore = Number(localStorage.getItem("stealFromSgaBankedScore") || 0);
