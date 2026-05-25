@@ -225,9 +225,11 @@ button{ font:inherit; }
 #ball{
     position:absolute; width:72px; height:72px; left:-8px; top:206px; z-index:10;
     border:4px solid #1b120a; border-radius:50%;
+    /* 當使用純 CSS 紋路時的背景 */
     background:radial-gradient(circle at 30% 26%, var(--ball-highlight), transparent 0 14%, transparent 15%), linear-gradient(90deg, transparent 45%, #1b120a 46% 53%, transparent 54%), linear-gradient(0deg, transparent 45%, #1b120a 46% 53%, transparent 54%), radial-gradient(circle at 50% 50%, transparent 0 56%, #1b120a 57% 61%, transparent 62%), var(--ball-color);
     box-shadow:0 10px 22px rgba(0,0,0,.32), 0 0 18px var(--ball-glow);
-    cursor:pointer; transition:left .16s ease, top .16s ease, transform .12s ease, width .16s, height .16s, background .2s ease;
+    cursor:pointer; transition:left .16s ease, top .16s ease, transform .12s ease, width .16s, height .16s;
+    overflow:hidden; /* 確保圖片球皮完美貼合圓形 */
 }
 
 #sga.fallen{ width:340px; height:230px; cursor:default; animation:fallDrop 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
@@ -248,8 +250,9 @@ button{ font:inherit; }
 #ballImage{
     width:100%;
     height:100%;
-    object-fit:contain;
+    object-fit:cover;
     pointer-events:none;
+    display:none; /* 預設隱藏，只有當球皮為圖片類型時才由 JS 顯示 */
 }
 #ball:hover{ transform:scale(1.08); }
 #ball:active{ transform:scale(.92); }
@@ -267,12 +270,13 @@ button{ font:inherit; }
 .shopLabel{ color:var(--muted); font-size:12px; font-weight:800; text-transform:uppercase; }
 #shopTokens{ font-size:24px; font-weight:900; line-height:1; text-align:right; font-variant-numeric:tabular-nums; }
 #palette{ display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-top:12px; }
-.colorBtn{ position:relative; aspect-ratio:1; min-width:0; border:2px solid rgba(255,255,255,.35); border-radius:50%; background:var(--swatch); cursor:pointer; color:#071113; font-size:12px; font-weight:900; line-height:1; box-shadow:inset 0 0 0 4px rgba(255,255,255,.2), 0 6px 14px rgba(0,0,0,.18); }
+.colorBtn{ position:relative; aspect-ratio:1; min-width:0; border:2px solid rgba(255,255,255,.35); border-radius:50%; background:var(--swatch); background-size:cover; background-position:center; cursor:pointer; color:#071113; font-size:12px; font-weight:900; line-height:1; box-shadow:inset 0 0 0 4px rgba(255,255,255,.2), 0 6px 14px rgba(0,0,0,.18); display:flex; align-items:center; justify-content:center; }
 .colorBtn.selected{ outline:3px solid var(--green); outline-offset:2px; }
 .colorBtn.locked{ filter:saturate(.5) brightness(.68); }
-.colorBtn.locked::after{ content:attr(data-cost); position:absolute; inset:auto -4px -7px auto; min-width:21px; min-height:21px; display:grid; place-items:center; border-radius:50%; background:var(--yellow); border:2px solid #10141e; }
+.colorBtn.locked::after{ content:attr(data-cost); position:absolute; inset:auto -4px -7px auto; min-width:21px; min-height:21px; display:grid; place-items:center; border-radius:50%; background:var(--yellow); border:2px solid #10141e; color:#000; font-size:10px; }
 
-#referee{ position:fixed; right:22px; bottom:18px; z-index:21; width:128px; height:178px; pointer-events:none; transform-origin:50% 100%; }
+/* 修正：將裁判改用固定在視窗右下角，完全脫離任何相對定位的干擾 */
+#referee { position: fixed; right: 22px; bottom: 18px; z-index: 21; width: 128px; height: 178px; pointer-events: none; transform-origin: 50% 100%; }
 .refCall{ position:absolute; right:74px; top:10px; min-width:132px; padding:8px 10px; border-radius:8px; background:rgba(7,11,18,.82); border:1px solid rgba(255,255,255,.24); color:var(--red); font-size:16px; font-weight:900; text-align:center; opacity:0; transform:translateY(8px) scale(.9); }
 .refHead{ position:absolute; left:43px; top:22px; width:48px; height:52px; border-radius:50%; background:#d59a74; border:3px solid #221714; }
 .refBody{ position:absolute; left:35px; top:70px; width:64px; height:88px; border:3px solid #111; border-radius:16px 16px 10px 10px; background:repeating-linear-gradient(90deg,#f5f5f5 0 9px,#111 9px 18px); }
@@ -296,8 +300,7 @@ button{ font:inherit; }
 h1{ margin:10px 0 12px; font-size:clamp(44px,10vw,86px); line-height:.88; letter-spacing:0; }
 .subtitle{ max-width:470px; margin:0 auto 22px; color:#dbe5f5; font-size:18px; line-height:1.55; }
 .rules{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:18px 0 22px; }
-.rule{ min-height:86px; padding:12px 10px; border:1px solid rgba(255,255,255,.14); border-radius:8px; background:rgba(255,255,255,.06); }
-.rule b{ display:block; margin-bottom:6px; font-size:16px; }
+.rule nudge{ display:block; margin-bottom:6px; font-size:16px; font-weight: bold;}
 .rule span{ display:block; color:#c9d3e4; font-size:13px; line-height:1.35; }
 
 .primaryBtn, .ghostBtn{ min-width:188px; min-height:56px; border:0; border-radius:8px; padding:0 22px; font-size:20px; font-weight:900; cursor:pointer; }
@@ -312,7 +315,6 @@ h1{ margin:10px 0 12px; font-size:clamp(44px,10vw,86px); line-height:.88; letter
 .statBox b{ display:block; margin-top:7px; font-size:28px; font-variant-numeric:tabular-nums; }
 #mobileHint{ position:fixed; left:50%; bottom:14px; z-index:18; transform:translateX(-50%); width:min(92vw,560px); padding:10px 14px; border-radius:8px; background:rgba(7,11,18,.62); color:#d8e1ee; font-size:14px; text-align:center; backdrop-filter:blur(8px); }
 
-/* 排行榜專用 CSS */
 #leaderboardInputArea { margin: 20px 0; padding: 15px; background: rgba(255,255,255,.06); border-radius: 8px; border: 1px solid rgba(255,255,255,.14); display: flex; gap: 8px; }
 #nicknameInput { flex-grow: 1; padding: 10px; border-radius: 5px; border: 1px solid rgba(255,255,255,.3); outline: none; background: rgba(0,0,0,.3); color: #fff; font-size: 16px; }
 #leaderboardDisplayArea { margin-bottom: 20px; text-align: left; }
@@ -367,16 +369,13 @@ h1{ margin:10px 0 12px; font-size:clamp(44px,10vw,86px); line-height:.88; letter
         <div id="headband"></div><div id="hair"></div><div id="beard"></div>
         <span class="eye left"></span><span class="eye right"></span><span class="mouth"></span>
         <div id="ball" aria-label="籃球，點擊偷球">
+            <!-- 修正：球內部包了一張圖，會遮擋 CSS 換色。我們加上 JavaScript 控制它的顯隱與更換 -->
+            <img id="ballImage" src="assets/ball.png" alt="籃球皮">
+            <div id="targetRing"></div>
+        </div>
+    </div>
 
-    <img
-        id="ballImage"
-        src="assets/ball.png"
-    >
-
-    <div id="targetRing"></div>
-
-</div>
-
+    <!-- 修正：將裁判移到外層（不在 SGA 容器內），配合上面的 position: fixed 就不會跟著 SGA 亂動 -->
     <div id="referee" aria-hidden="true">
         <div class="refCall">SHOOTING FOUL</div>
         <div class="refHead"></div><div class="refBody"></div><div class="refArm"></div>
@@ -392,13 +391,13 @@ h1{ margin:10px 0 12px; font-size:clamp(44px,10vw,86px); line-height:.88; letter
         <h1>STEAL<br>FROM SGA</h1>
         <p class="subtitle">在時間內只點籃球。手太慢會斷連擊，碰到身體就是犯規，碰到頭直接 Flagrant 2。</p>
         <div class="rules">
-            <div class="rule"><b>偷球</b><span>點到球加分，連擊越高分數越兇。</span></div>
-            <div class="rule"><b>犯規</b><span>點到身體會歸零連擊，6 次犯滿離場。</span></div>
-            <div class="rule"><b>驅逐</b><span>點到頭就是 Flagrant 2，遊戲立刻結束。</span></div>
+            <div class="rule"><nudge>偷球</nudge><span>點到球加分，連擊越高分數越兇。</span></div>
+            <div class="rule"><nudge>犯規</nudge><span>點到身體會歸零連擊，6 次犯滿離場。</span></div>
+            <div class="rule"><nudge>驅逐</nudge><span>點到頭就是 Flagrant 2，遊戲立刻結束。</span></div>
         </div>
         <aside id="shop" aria-label="球色商店">
             <div class="shopTop"><span class="shopLabel">Tokens</span><strong id="shopTokens">0</strong></div>
-            <div id="palette" aria-label="彩虹球色"></div>
+            <div id="palette" aria-label="多元球皮商店"></div>
         </aside>
         <button class="primaryBtn" id="startBtn">開始遊戲</button>
     </div>
@@ -442,6 +441,7 @@ const menuBtn = document.getElementById("menuBtn");
 const gameArea = document.getElementById("gameArea");
 const sga = document.getElementById("sga");
 const ball = document.getElementById("ball");
+const ballImage = document.getElementById("ballImage");
 const body = document.getElementById("body");
 const head = document.getElementById("head");
 const scoreText = document.getElementById("score");
@@ -467,25 +467,37 @@ let audioContext = null;
 let best = Number(localStorage.getItem("stealFromSgaBest") || 0);
 let tokens = Number(localStorage.getItem("stealFromSgaTokens") || 0);
 let ownedColors = loadOwnedColors();
-let selectedColor = localStorage.getItem("stealFromSgaBallColor") || "orange";
+let selectedColor = localStorage.getItem("stealFromSgaBallColor") || "classic";
 let currentPose = "dribble", earnedThisGame = 0, stunned = false;
 
 const poses = ["dribble", "shot", "fake"];
+
+/* 
+👉 你可以在這裡自由增加很多球皮！
+支援兩種類型：
+1. 圖片球皮：加上 type: "image", src: "圖片網址" (可以是相對路徑，或是網路圖片 URL)
+2. 純色球皮：不用加 type，直接設定 color, highlight, glow 的 CSS 顏色
+*/
 const ballSkins = [
-    {id:"red", name:"紅", color:"#ff3b30", highlight:"#ffc2bd", glow:"rgba(255,59,48,.42)"},
-    {id:"orange", name:"橙", color:"#f28c28", highlight:"#ffd19a", glow:"rgba(242,140,40,.35)"},
-    {id:"yellow", name:"黃", color:"#ffd60a", highlight:"#fff1a8", glow:"rgba(255,214,10,.42)"},
-    {id:"green", name:"綠", color:"#34c759", highlight:"#b8ffd0", glow:"rgba(52,199,89,.42)"},
-    {id:"blue", name:"藍", color:"#0a84ff", highlight:"#b8dcff", glow:"rgba(10,132,255,.42)"},
-    {id:"indigo", name:"靛", color:"#4b5cff", highlight:"#c9ceff", glow:"rgba(75,92,255,.42)"},
-    {id:"violet", name:"紫", color:"#bf5af2", highlight:"#edc5ff", glow:"rgba(191,90,242,.42)"}
+    {id:"classic", name:"橘", type:"image", src:"assets/ball.png", cost:0}, // 原創預設球皮
+    {id:"curry", name:"咖哩", type:"image", src:"https://img.icons8.com/emoji/96/basketball-emoji.png", cost:1}, // 測試用的網路球皮範例
+    {id:"red", name:"紅", color:"#ff3b30", highlight:"#ffc2bd", glow:"rgba(255,59,48,.42)", cost:1},
+    {id:"orange", name:"橙", color:"#f28c28", highlight:"#ffd19a", glow:"rgba(242,140,40,.35)", cost:1},
+    {id:"yellow", name:"黃", color:"#ffd60a", highlight:"#fff1a8", glow:"rgba(255,214,10,.42)", cost:1},
+    {id:"green", name:"綠", color:"#34c759", highlight:"#b8ffd0", glow:"rgba(52,199,89,.42)", cost:1},
+    {id:"blue", name:"藍", color:"#0a84ff", highlight:"#b8dcff", glow:"rgba(10,132,255,.42)", cost:1},
+    {id:"indigo", name:"靛", color:"#4b5cff", highlight:"#c9ceff", glow:"rgba(75,92,255,.42)", cost:1},
+    {id:"violet", name:"紫", color:"#bf5af2", highlight:"#edc5ff", glow:"rgba(191,90,242,.42)", cost:2},
+    {id:"gold", name:"黃金", color:"#d4af37", highlight:"#fff3cc", glow:"rgba(212,175,55,.6)", cost:300} // 新增的黃金限量球皮
+    
 ];
 
 const legacyBankedScore = Number(localStorage.getItem("stealFromSgaBankedScore") || 0);
 if(legacyBankedScore > 0){ tokens += legacyBankedScore; localStorage.setItem("stealFromSgaTokens", String(tokens)); localStorage.removeItem("stealFromSgaBankedScore"); }
 const poseBallSpots = { dribble:[{x:-24,y:352,scale:1},{x:18,y:360,scale:.9},{x:150,y:326,scale:.9}], shot:[{x:84,y:-30,scale:.86},{x:108,y:-18,scale:.82}], fake:[{x:-34,y:220,scale:.95},{x:156,y:204,scale:.9},{x:104,y:144,scale:.82}] };
-if(!ownedColors.includes(selectedColor)) selectedColor = "orange";
-if(!ownedColors.includes("orange")) ownedColors.push("orange");
+
+if(!ownedColors.includes(selectedColor)) selectedColor = "classic";
+if(!ownedColors.includes("classic")) ownedColors.push("classic");
 
 const foulTargets = [body, ...document.querySelectorAll(".arm")];
 foulTargets.forEach(target => target.addEventListener("pointerdown", e => { e.stopPropagation(); if(!gameRunning || stunned) return; callFoul("SHOOTING FOUL!"); }));
@@ -502,7 +514,7 @@ function startGame(){
     score = 0; combo = 0; fouls = 0; steals = 0; earnedThisGame = 0; timeLeft = 45; gameRunning = true; stunned = false;
     clearTimeout(stunTimer); menu.style.display = "none"; endOverlay.style.display = "none";
     referee.classList.remove("blowing"); sga.classList.remove("fallen"); ball.classList.remove("locked"); ball.classList.add("hot");
-    setPose("dribble"); updateHud(); moveSGA();
+    setPose("dribble"); updateHud(); applyBallSkin(); moveSGA();
     clearInterval(moveTimer); clearInterval(clockTimer);
     moveTimer = setInterval(moveSGA, 720); clockTimer = setInterval(tickClock, 100);
     showMessage("GO!", "var(--green)"); playTone(560, .12, "square");
@@ -555,25 +567,54 @@ function endGame(reason, title){
     setTimeout(() => endOverlay.style.display = "grid", 280);
 }
 function setPose(pose){ currentPose = pose; sga.classList.remove("pose-dribble", "pose-shot", "pose-fake"); sga.classList.add(`pose-${pose}`); }
-function loadOwnedColors(){ try{ const saved = JSON.parse(localStorage.getItem("stealFromSgaOwnedColors") || "[]"); return Array.isArray(saved) && saved.length ? saved : ["orange"]; }catch(e){ return ["orange"]; } }
+function loadOwnedColors(){ try{ const saved = JSON.parse(localStorage.getItem("stealFromSgaOwnedColors") || "[]"); return Array.isArray(saved) && saved.length ? saved : ["classic"]; }catch(e){ return ["classic"]; } }
 function saveEconomy(){ localStorage.setItem("stealFromSgaTokens", String(tokens)); localStorage.removeItem("stealFromSgaBankedScore"); localStorage.setItem("stealFromSgaOwnedColors", JSON.stringify(ownedColors)); localStorage.setItem("stealFromSgaBallColor", selectedColor); }
+
 function renderPalette(){
     palette.innerHTML = "";
     ballSkins.forEach(skin => {
         const btn = document.createElement("button"); const owned = ownedColors.includes(skin.id);
-        btn.type = "button"; btn.className = `colorBtn${owned ? "" : " locked"}${selectedColor === skin.id ? " selected" : ""}`; btn.dataset.skin = skin.id; btn.dataset.cost = "1";
-        btn.style.setProperty("--swatch", skin.color); btn.setAttribute("aria-label", `${skin.name}色`); btn.textContent = selectedColor === skin.id ? "✓" : ""; palette.appendChild(btn);
+        btn.type = "button"; btn.className = `colorBtn${owned ? "" : " locked"}${selectedColor === skin.id ? " selected" : ""}`; btn.dataset.skin = skin.id; btn.dataset.cost = skin.cost;
+        
+        // 如果是圖片球皮，把按鈕背景設為該圖片以便預覽
+        if(skin.type === "image") {
+            btn.style.backgroundImage = `url('${skin.src}')`;
+            btn.style.setProperty("--swatch", "transparent");
+        } else {
+            btn.style.setProperty("--swatch", skin.color);
+            btn.style.backgroundImage = "none";
+        }
+        
+        btn.setAttribute("aria-label", `${skin.name}球皮`); btn.textContent = selectedColor === skin.id ? "✓" : ""; palette.appendChild(btn);
     });
 }
+
 function chooseBallColor(skinId){
     const skin = ballSkins.find(i => i.id === skinId); if(!skin) return;
     if(!ownedColors.includes(skinId)){
-        if(tokens < 1){ showMessage("NEED TOKEN", "var(--yellow)"); playTone(150, .1, "triangle"); return; }
-        tokens -= 1; ownedColors.push(skinId); showMessage("COLOR UNLOCKED", "var(--green)"); playTone(740, .08, "sine");
+        if(tokens < skin.cost){ showMessage("NEED TOKEN", "var(--yellow)"); playTone(150, .1, "triangle"); return; }
+        tokens -= skin.cost; ownedColors.push(skinId); showMessage("SKIN UNLOCKED", "var(--green)"); playTone(740, .08, "sine");
     }
     selectedColor = skinId; applyBallSkin(); saveEconomy(); updateHud(); renderPalette();
 }
-function applyBallSkin(){ const skin = ballSkins.find(i => i.id === selectedColor) || ballSkins[1]; document.documentElement.style.setProperty("--ball-color", skin.color); document.documentElement.style.setProperty("--ball-highlight", skin.highlight); document.documentElement.style.setProperty("--ball-glow", skin.glow); }
+
+function applyBallSkin(){ 
+    const skin = ballSkins.find(i => i.id === selectedColor) || ballSkins[0]; 
+    if(skin.type === "image") {
+        // 顯示圖片皮並替換 src
+        ballImage.src = skin.src;
+        ballImage.style.display = "block";
+        // 預設圖片光暈
+        document.documentElement.style.setProperty("--ball-glow", "rgba(255,255,255,.2)");
+    } else {
+        // 純色皮隱藏圖片，改用 CSS background
+        ballImage.style.display = "none";
+        document.documentElement.style.setProperty("--ball-color", skin.color); 
+        document.documentElement.style.setProperty("--ball-highlight", skin.highlight); 
+        document.documentElement.style.setProperty("--ball-glow", skin.glow); 
+    }
+}
+
 function animateReferee(){ referee.classList.remove("blowing"); void referee.offsetWidth; referee.classList.add("blowing"); setTimeout(() => referee.classList.remove("blowing"), 1100); }
 function playFoulAudio(){ playWhistle(); speakShootingFoul(); }
 function playWhistle(){
@@ -597,16 +638,7 @@ applyBallSkin(); renderPalette(); updateHud();
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-import {
-    getDatabase,
-    ref,
-    push,
-    query,
-    orderByChild,
-    limitToLast,
-    onValue
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { getDatabase, ref, push, query, orderByChild, limitToLast, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
     const firebaseConfig = {
         apiKey: "AIzaSyDPz3EYOaJK88UYoVVVwVmPcn_ctWBYo1k",
         authDomain: "steal-sga.firebaseapp.com",
