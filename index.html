@@ -371,7 +371,7 @@ h1{ margin:10px 0 12px; font-size:clamp(44px,10vw,86px); line-height:.88; letter
     <div id="sga" class="pose-dribble" aria-label="SGA 持球者">
         <div id="shadow"></div>
         
-       <video id="foulVideo" 
+      <video id="foulVideo" 
        src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" 
        muted 
        playsinline 
@@ -527,12 +527,10 @@ menuBtn.addEventListener("click", showMenu);
 ball.addEventListener("pointerdown", e => { e.stopPropagation(); if(!gameRunning || stunned) return; stealBall(); });
 
 // 🌟 修改：點擊頭部時，觸發影片播放
-// 🌟 最終加強版：點擊頭部（Flagrant 2） - 針對 Safari 徹底優化
+// 🌟 簡化相容版 - 針對 iOS Safari
 head.addEventListener("pointerdown", e => { 
     e.stopPropagation(); 
     if(!gameRunning || stunned) return; 
-
-    console.log("🔴=== 頭部被點擊 ===");
 
     gameRunning = false;
     stunned = true;
@@ -543,24 +541,16 @@ head.addEventListener("pointerdown", e => {
     foulVideo.style.display = "block";
     foulVideo.currentTime = 0;
 
-    // 強制播放邏輯
-    const attemptPlay = () => {
-        foulVideo.play().then(() => {
-            console.log("✅ 影片播放成功！");
-        }).catch(err => {
-            console.error("❌ 播放失敗:", err.name, err.message);
-            alert("影片播放失敗！\n\n錯誤類型: " + err.name + "\n訊息: " + err.message + "\n\n請把這個 alert 完整截圖或複製給我");
-            
-            setTimeout(() => {
-                foulVideo.style.display = "none";
-                ball.style.display = "block"; 
-                endGame("EJECTED", "FLAGRANT 2"); 
-            }, 1200);
+    // 簡化播放
+    setTimeout(() => {
+        foulVideo.play().catch(err => {
+            console.error("播放失敗:", err);
+            // 失敗就直接結束，不卡住
+            foulVideo.style.display = "none";
+            ball.style.display = "block"; 
+            endGame("EJECTED", "FLAGRANT 2"); 
         });
-    };
-
-    foulVideo.load();           // 強制重新載入
-    setTimeout(attemptPlay, 200);  // 給一點時間載入
+    }, 100);
 
     showMessage("FLAGRANT 2", "var(--yellow)"); 
     playTone(120, .18, "sawtooth"); 
