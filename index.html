@@ -695,37 +695,30 @@ function playTone(freq, dur, type){
     catch(e){ audioContext = null; }
 }
 function triggerAnkleBreaker() {
-    gameRunning = false;
-    stunned = true;
+    // 1. 先清除原本的移動計時器，防止畫面閃爍或邏輯衝突
+    clearTimeout(moveTimer); 
     
-    const bigMessage = document.createElement("div");
-    bigMessage.style.position = "fixed";
-    bigMessage.style.left = "50%";
-    bigMessage.style.top = "50%";
-    bigMessage.style.transform = "translate(-50%, -50%)";
-    bigMessage.style.fontSize = "clamp(55px, 12vw, 120px)";
-    bigMessage.style.fontWeight = "900";
-    bigMessage.style.color = "var(--yellow)";
-    bigMessage.style.textShadow = "0 0 40px #ffd84a, 0 0 80px #ff4561";
-    bigMessage.style.zIndex = "9999";
-    bigMessage.style.whiteSpace = "nowrap";
-    bigMessage.textContent = "腳踝終結者";
-    document.body.appendChild(bigMessage);
-
-    if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance("腳踝終結者！");
-        utterance.lang = "zh-TW";
-        utterance.rate = 0.9;
-        utterance.pitch = 1.1;
-        window.speechSynthesis.speak(utterance);
+    // 2. 進入硬直狀態（暫停 SGA 自主移動）
+    stunned = true; 
+    
+    const breaker = document.getElementById("ankleBreaker");
+    breaker.classList.add("showAnkle");
+    
+    // 3. 播放語音（加入語音優化，防止連續觸發時卡音）
+    if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel(); // 先中斷之前還沒播完的語音
+        const speech = new SpeechSynthesisUtterance("Ankle Breaker!");
+        speech.rate = 1.25; // 稍微加快語速，聽起來更有張力
+        speech.lang = "en-US";
+        window.speechSynthesis.speak(speech);
     }
-
-    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-
+    
+    // 4. 關鍵修復：1.5 秒特效結束後，必須把狀態重置並重啟遊戲迴圈
     setTimeout(() => {
-        bigMessage.remove();
-        endGame("ANKLE BREAKER", "腳踝終結者");
-    }, 1600);
+        breaker.classList.remove("showAnkle");
+        stunned = false;  // 解除硬直，讓 SGA 可以再度移動
+        moveSGA();        // 重新呼叫運球函式，讓計時器活過來！
+    }, 1500);
 }
 function moveSGA(){
     if(!gameRunning || stunned) return;
