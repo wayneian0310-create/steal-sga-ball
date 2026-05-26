@@ -539,6 +539,8 @@ head.addEventListener("pointerdown", e => {
 });
 let whiffCount = 0; // 新增：連續沒抄到球次數
 
+let whiffCount = 0; // 連續沒抄到球次數
+
 gameArea.addEventListener("pointerdown", e => { 
     if(!gameRunning || stunned || e.target !== gameArea) return; 
     
@@ -558,6 +560,7 @@ window.addEventListener("resize", () => { if(gameRunning) moveSGA(); });
 
 function startGame(){
     score = 0; combo = 0; fouls = 0; steals = 0; earnedThisGame = 0; timeLeft = 45; gameRunning = true; stunned = false;
+    whiffCount = 0;   // ← 新增這一行
     clearTimeout(stunTimer); menu.style.display = "none"; endOverlay.style.display = "none";
     referee.classList.remove("blowing"); sga.classList.remove("fallen"); ball.classList.remove("locked"); ball.classList.add("hot");
     foulVideo.style.display = "none"; // 確保開局時影片是隱藏的
@@ -698,32 +701,28 @@ function triggerAnkleBreaker() {
     gameRunning = false;
     stunned = true;
     
-    // 顯示超大字幕
     const bigMessage = document.createElement("div");
     bigMessage.style.position = "fixed";
     bigMessage.style.left = "50%";
     bigMessage.style.top = "50%";
     bigMessage.style.transform = "translate(-50%, -50%)";
-    bigMessage.style.fontSize = "clamp(60px, 12vw, 120px)";
+    bigMessage.style.fontSize = "clamp(55px, 12vw, 120px)";
     bigMessage.style.fontWeight = "900";
     bigMessage.style.color = "var(--yellow)";
     bigMessage.style.textShadow = "0 0 40px #ffd84a, 0 0 80px #ff4561";
-    bigMessage.style.zIndex = "100";
+    bigMessage.style.zIndex = "9999";
     bigMessage.style.whiteSpace = "nowrap";
     bigMessage.textContent = "腳踝終結者";
     document.body.appendChild(bigMessage);
 
-    // 語音
-   if("speechSynthesis" in window) {
-        const speech = new SpeechSynthesisUtterance("Ankle Breaker!");
-        speech.rate = 1.2;
-        window.speechSynthesis.speak(speech);
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance("腳踝終結者！");
+        utterance.lang = "zh-TW";
+        utterance.rate = 0.9;
+        utterance.pitch = 1.1;
+        window.speechSynthesis.speak(utterance);
     }
-    
-    setTimeout(() => breaker.classList.remove("showAnkle"), 1500);
-}
 
-    // 震動效果（支援手機）
     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
 
     setTimeout(() => {
@@ -746,18 +745,17 @@ function moveSGA(){
     
     const lean = Math.random() > .5 ? 1 : -1;
     
-    // 隨機切換 pose + 隨機移動間隔
     setPose(poses[Math.floor(Math.random() * poses.length)]);
     
     sga.style.left = `${x}px`;
     sga.style.top = `${y}px`;
-    sga.style.setProperty("--lean", `${lean * Math.min(6, combo + 2)}deg`);
+    sga.style.setProperty("--lean", `${lean * Math.min(7, combo + 2)}deg`);
     
     moveBall();
     
-    // 增加節奏變化：每次移動後的間隔更隨機
+    // 動態隨機間隔，讓運球更有節奏
     clearInterval(moveTimer);
-    const nextInterval = Math.max(420, 850 - combo * 25 + Math.random() * 180);
+    const nextInterval = Math.max(380, 920 - combo * 28 + Math.random() * 240);
     moveTimer = setInterval(moveSGA, nextInterval);
 }
 applyBallSkin(); renderPalette(); updateHud();
