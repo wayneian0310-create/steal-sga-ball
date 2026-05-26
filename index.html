@@ -440,7 +440,7 @@ h1{ margin:10px 0 12px; font-size:clamp(44px,10vw,86px); line-height:.88; letter
 <div class="overlay" id="mvpOverlay" style="display:none; z-index:150; background: radial-gradient(circle at 50% 50%, rgba(244,107,42,0.25), #05090f 85%); flex-direction: column; justify-content: center; align-items: center; text-align: center;">
     <div style="max-width: 420px; padding: 24px; background: rgba(10,16,25,0.92); border: 3px solid var(--thunder-orange); border-radius: 14px; box-shadow: 0 0 40px rgba(244,107,42,0.5); backdrop-filter: blur(10px);">
         <img src="assets/sga-standing.jpeg" style="width: 100%; max-height: 42vh; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">
-        <h2 style="color: var(--yellow); font-size: 30px; margin: 20px 0 10px; font-weight: 900; line-height: 1.2; letter-spacing: 0.5px;">"I am MVP,<br>you are nothing bro"</h2>
+        <h2 style="color: var(--yellow); font-size: 30px; margin: 20px 0 10px; font-weight: 900; line-height: 1.2; letter-spacing: 0.5px;">"I am MVP,<br>you are nothing "</h2>
         <p style="color: var(--muted); font-size: 14px; margin: 0; text-transform: uppercase; letter-spacing: 2px;">- Shai Gilgeous-Alexander</p>
     </div>
 </div>
@@ -743,10 +743,10 @@ function endGame(reason, title){
         mvpOverlay.style.display = "flex";
         if("speechSynthesis" in window) {
             window.speechSynthesis.cancel();
-            const mvpSpeech = new SpeechSynthesisUtterance("I am MVP, you are nothing bro");
+            const mvpSpeech = new SpeechSynthesisUtterance("I am MVP, you are nothing");
             mvpSpeech.lang = "en-US";
             mvpSpeech.rate = 0.92; 
-            mvpSpeech.pitch = 0.65; 
+            mvpSpeech.pitch = 0.35; 
             window.speechSynthesis.speak(mvpSpeech);
         }
         setTimeout(() => {
@@ -837,7 +837,7 @@ function speakPain(){
     const call = new SpeechSynthesisUtterance("阿啊啊啊啊"); 
     call.lang = "zh-TW"; 
     call.rate = 0.8; 
-    call.pitch = 0.3; 
+    call.pitch = 1; 
     window.speechSynthesis.cancel(); 
     window.speechSynthesis.speak(call); 
 }
