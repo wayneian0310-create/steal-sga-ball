@@ -539,8 +539,6 @@ head.addEventListener("pointerdown", e => {
 });
 let whiffCount = 0; // 新增：連續沒抄到球次數
 
-let whiffCount = 0; // 連續沒抄到球次數
-
 gameArea.addEventListener("pointerdown", e => { 
     if(!gameRunning || stunned || e.target !== gameArea) return; 
     
