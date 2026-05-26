@@ -561,7 +561,6 @@ function startGame(){
     whiffCount = 0;   // ← 新增這一行
     clearTimeout(stunTimer); menu.style.display = "none"; endOverlay.style.display = "none";
     referee.classList.remove("blowing"); sga.classList.remove("fallen"); ball.classList.remove("locked"); ball.classList.add("hot");
-    foulVideo.style.display = "none"; // 確保開局時影片是隱藏的
     setPose("dribble"); updateHud(); applyBallSkin(); moveSGA();
     clearInterval(moveTimer); clearInterval(clockTimer);
     moveTimer = setInterval(moveSGA, 720); clockTimer = setInterval(tickClock, 100);
