@@ -714,13 +714,14 @@ function triggerAnkleBreaker() {
     document.body.appendChild(bigMessage);
 
     // 語音
-    if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance("腳踝終結者！");
-        utterance.lang = "zh-TW";
-        utterance.rate = 0.9;
-        utterance.pitch = 1.1;
-        window.speechSynthesis.speak(utterance);
+   if("speechSynthesis" in window) {
+        const speech = new SpeechSynthesisUtterance("Ankle Breaker!");
+        speech.rate = 1.2;
+        window.speechSynthesis.speak(speech);
     }
+    
+    setTimeout(() => breaker.classList.remove("showAnkle"), 1500);
+}
 
     // 震動效果（支援手機）
     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
