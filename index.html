@@ -528,36 +528,40 @@ head.addEventListener("pointerdown", e => {
     e.stopPropagation(); 
     if(!gameRunning || stunned) return; 
 
-    // 1. 暫停遊戲計時，避免在播影片時時間到了
     gameRunning = false;
-    stunned = true; // 防止其他點擊
+    stunned = true;
     clearInterval(moveTimer);
     clearInterval(clockTimer);
 
-    // 2. 隱藏籃球，避免畫面穿幫
     ball.style.display = "none";
-
-    // 3. 顯示並播放影片
     foulVideo.style.display = "block";
-    foulVideo.currentTime = 0; // 重設回第 0 秒
-    foulVideo.play();
+    foulVideo.currentTime = 0;
 
-    // 4. 觸發裁判與音效
+    // Safari 專用處理
+    foulVideo.play().then(() => {
+        console.log("✅ Foul video playing");
+    }).catch(err => {
+        console.error("❌ 影片播放失敗:", err);
+        alert("影片播放失敗: " + err.name + "\n" + err.message);
+        
+        // 播放失敗時直接結束遊戲
+        setTimeout(() => {
+            foulVideo.style.display = "none";
+            ball.style.display = "block"; 
+            endGame("EJECTED", "FLAGRANT 2"); 
+        }, 800);
+    });
+
     showMessage("FLAGRANT 2", "var(--yellow)"); 
     playTone(120, .18, "sawtooth"); 
-    
-    // 5. 根據影片長度延遲進入結束畫面 (預設 1500 毫秒 = 1.5 秒)
-    // ⚠️ 記得根據你錄製的 foul.webm 影片實際長度，來調整這裡的毫秒數！
-    setTimeout(() => {
-        // 隱藏影片，恢復籃球顯示，為下一場遊戲做準備
+
+    // 改用影片結束事件（比 setTimeout 更好）
+    foulVideo.onended = () => {
         foulVideo.style.display = "none";
         ball.style.display = "block"; 
-        
-        // 呼叫結束遊戲
         endGame("EJECTED", "FLAGRANT 2"); 
-    }, 9000); 
+    };
 });
-
 gameArea.addEventListener("pointerdown", e => { if(!gameRunning || stunned || e.target !== gameArea) return; combo = 0; updateHud(); showMessage("WHIFF", "#dce6f7"); playTone(180, .08, "triangle"); });
 window.addEventListener("resize", () => { if(gameRunning) moveSGA(); });
 
