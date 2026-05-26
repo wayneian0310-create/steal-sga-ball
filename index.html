@@ -527,10 +527,12 @@ menuBtn.addEventListener("click", showMenu);
 ball.addEventListener("pointerdown", e => { e.stopPropagation(); if(!gameRunning || stunned) return; stealBall(); });
 
 // 🌟 修改：點擊頭部時，觸發影片播放
-// 🌟 加強版：點擊頭部時，觸發影片播放（針對 Safari 優化）
+// 🌟 最終加強版：點擊頭部（Flagrant 2） - 針對 Safari 徹底優化
 head.addEventListener("pointerdown", e => { 
     e.stopPropagation(); 
     if(!gameRunning || stunned) return; 
+
+    console.log("🔴=== 頭部被點擊 ===");
 
     gameRunning = false;
     stunned = true;
@@ -541,13 +543,13 @@ head.addEventListener("pointerdown", e => {
     foulVideo.style.display = "block";
     foulVideo.currentTime = 0;
 
-    // 確保影片已載入
-    const playVideo = () => {
+    // 強制播放邏輯
+    const attemptPlay = () => {
         foulVideo.play().then(() => {
-            console.log("✅ Foul video 播放成功！");
+            console.log("✅ 影片播放成功！");
         }).catch(err => {
-            console.error("❌ 影片播放失敗:", err.name, err.message);
-            alert("影片播放失敗！\n錯誤類型: " + err.name + "\n\n請截圖這個訊息給我");
+            console.error("❌ 播放失敗:", err.name, err.message);
+            alert("影片播放失敗！\n\n錯誤類型: " + err.name + "\n訊息: " + err.message + "\n\n請把這個 alert 完整截圖或複製給我");
             
             setTimeout(() => {
                 foulVideo.style.display = "none";
@@ -557,18 +559,12 @@ head.addEventListener("pointerdown", e => {
         });
     };
 
-    // 如果影片還沒準備好，先等一下
-    if (foulVideo.readyState === 0) {
-        foulVideo.load();
-        foulVideo.onloadedmetadata = () => playVideo();
-    } else {
-        playVideo();
-    }
+    foulVideo.load();           // 強制重新載入
+    setTimeout(attemptPlay, 200);  // 給一點時間載入
 
     showMessage("FLAGRANT 2", "var(--yellow)"); 
     playTone(120, .18, "sawtooth"); 
 
-    // 影片結束後結束遊戲
     foulVideo.onended = () => {
         foulVideo.style.display = "none";
         ball.style.display = "block"; 
