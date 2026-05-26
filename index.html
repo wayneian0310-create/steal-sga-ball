@@ -120,7 +120,6 @@ button{ font:inherit; }
     text-shadow:0 8px 28px rgba(0,0,0,.7); pointer-events:none;
 }
 
-/* 🌟 Ankle Breaker 特效字體 */
 #ankleBreaker{
     position:fixed; left:50%; top:50%; z-index:100;
     transform:translate(-50%,-50%) scale(0);
@@ -200,6 +199,20 @@ button{ font:inherit; }
     position:absolute; left:74px; top:96px; width:144px; height:258px; z-index:12;
     border-radius:60px 60px 36px 36px; background:transparent; border:0; box-shadow:none; transition:transform .2s ease;
 }
+
+/* 🌟 擴大犯規範圍的隱形區塊 */
+#enragedFoulZone {
+    display: none;
+    position: absolute;
+    left: 0px; top: -10px; right: 0px; bottom: 40px;
+    border-radius: 60px;
+    z-index: 9;
+    background: transparent;
+}
+/* 暴走模式的專屬特效 */
+#sga.enraged #enragedFoulZone { display: block; }
+#sga.enraged .sgaPhoto { filter: drop-shadow(0 0 25px rgba(255, 69, 97, 0.8)) contrast(1.1); }
+
 #head{ position:absolute; left:96px; top:22px; width:94px; height:104px; border-radius:50%; background:transparent; border:0; z-index:13; }
 #headband{ position:absolute; left:66px; top:38px; width:108px; height:18px; z-index:8; border-radius:16px; background:#f5f7ff; border:2px solid rgba(15,22,36,.38); pointer-events:none; }
 #hair{
@@ -380,6 +393,9 @@ h1{ margin:10px 0 12px; font-size:clamp(44px,10vw,86px); line-height:.88; letter
         <div id="legs"><span class="shoe left"></span><span class="shoe right"></span></div>
         <div id="shorts"></div><div class="arm left"></div><div class="arm right"></div>
         <div id="body" aria-label="身體，點到會犯規"></div>
+        
+        <div id="enragedFoulZone" aria-label="擴大犯規區"></div>
+        
         <div id="head" aria-label="頭部，點到會被驅逐"></div>
         <div id="headband"></div><div id="hair"></div><div id="beard"></div>
         <span class="eye left"></span><span class="eye right"></span><span class="mouth"></span>
@@ -457,6 +473,7 @@ const ball = document.getElementById("ball");
 const ballImage = document.getElementById("ballImage");
 const body = document.getElementById("body");
 const head = document.getElementById("head");
+const enragedFoulZone = document.getElementById("enragedFoulZone"); // 🌟 新增：暴走模式犯規區
 const scoreText = document.getElementById("score");
 const comboText = document.getElementById("combo");
 const foulText = document.getElementById("fouls");
@@ -476,8 +493,10 @@ const finalEarned = document.getElementById("finalEarned");
 const ankleBreaker = document.getElementById("ankleBreaker");
 
 let score = 0, combo = 0, fouls = 0, steals = 0, timeLeft = 45;
-let gameRunning = false, moveTimer = 0, clockTimer = 0, messageTimer = 0, stunTimer = 0;
-let missCount = 0; // 🌟 錯誤點擊計數
+let gameRunning = false, moveTimer = 0, clockTimer = 0, messageTimer = 0, stunTimer = 0, ejectTimer = 0;
+let missCount = 0; 
+let isGameOver = false; // 🌟 核心防當機鎖
+let isEnraged = false;  // 🌟 暴走模式觸發鎖
 let audioContext = null;
 let best = Number(localStorage.getItem("stealFromSgaBest") || 0);
 let tokens = Number(localStorage.getItem("stealFromSgaTokens") || 0);
@@ -509,7 +528,8 @@ const poseBallSpots = { dribble:[{x:-24,y:352,scale:1},{x:18,y:360,scale:.9},{x:
 if(!ownedColors.includes(selectedColor)) selectedColor = "classic";
 if(!ownedColors.includes("classic")) ownedColors.push("classic");
 
-const foulTargets = [body, ...document.querySelectorAll(".arm")];
+// 🌟 犯規區加入新的隱形擴大區塊
+const foulTargets = [body, enragedFoulZone, ...document.querySelectorAll(".arm")];
 foulTargets.forEach(target => target.addEventListener("pointerdown", e => { e.stopPropagation(); if(!gameRunning || stunned) return; callFoul("SHOOTING FOUL!"); }));
 
 palette.addEventListener("click", e => { 
@@ -523,13 +543,16 @@ menuBtn.addEventListener("click", showMenu);
 
 ball.addEventListener("pointerdown", e => { e.stopPropagation(); if(!gameRunning || stunned) return; stealBall(); });
 
+// 🌟 修復 1：點頭會卡住的 Bug
 head.addEventListener("pointerdown", e => { 
     e.stopPropagation(); 
     if(!gameRunning || stunned) return; 
+    
     gameRunning = false;
     stunned = true;
     clearTimeout(moveTimer);
     clearInterval(clockTimer);
+    
     showMessage("FLAGRANT 2", "var(--yellow)"); 
     playTone(120, .18, "sawtooth"); 
     animateReferee(); 
@@ -537,10 +560,11 @@ head.addEventListener("pointerdown", e => {
     sga.classList.remove("pose-dribble", "pose-shot", "pose-fake"); 
     sga.classList.add("fallen"); 
     ball.classList.add("locked");
-    setTimeout(() => endGame("EJECTED", "FLAGRANT 2"), 1500); 
+    
+    // 使用獨立計時器，並在觸發後確實呼叫 endGame，不會被阻擋
+    ejectTimer = setTimeout(() => endGame("EJECTED", "FLAGRANT 2"), 1500); 
 });
 
-// 🌟 新增：沒抄到球的邏輯與觸發 Ankle Breaker
 gameArea.addEventListener("pointerdown", e => { 
     if(!gameRunning || stunned || e.target === sga || e.target.closest("#sga") || e.target.closest("#menu") || e.target.closest("#endOverlay")) return; 
     combo = 0; 
@@ -559,26 +583,33 @@ gameArea.addEventListener("pointerdown", e => {
 window.addEventListener("resize", () => { if(gameRunning) moveSGA(); });
 
 function startGame(){
-    score = 0; combo = 0; fouls = 0; steals = 0; earnedThisGame = 0; timeLeft = 45; gameRunning = true; stunned = false; missCount = 0;
-    clearTimeout(stunTimer); clearTimeout(moveTimer); clearInterval(clockTimer);
+    score = 0; combo = 0; fouls = 0; steals = 0; earnedThisGame = 0; timeLeft = 45; 
+    gameRunning = true; stunned = false; missCount = 0; isGameOver = false;
+    
+    // 🌟 重置 SGA 狀態與圖片回歸正常
+    isEnraged = false;
+    sga.classList.remove("enraged");
+    document.querySelector('.photo-dribble').src = "assets/sga-dribble.jpeg";
+    document.querySelector('.photo-stand').src = "assets/sga-standing.jpeg";
+    document.querySelector('.photo-fall').src = "assets/sga-fall.jpeg";
+
+    clearTimeout(stunTimer); clearTimeout(moveTimer); clearInterval(clockTimer); clearTimeout(ejectTimer);
     menu.style.display = "none"; endOverlay.style.display = "none";
     referee.classList.remove("blowing"); sga.classList.remove("fallen"); ball.classList.remove("locked"); ball.classList.add("hot");
+    
     setPose("dribble"); updateHud(); applyBallSkin(); 
     clockTimer = setInterval(tickClock, 100);
     showMessage("GO!", "var(--green)"); playTone(560, .12, "square");
-    moveSGA(); // 啟動運球迴圈
+    moveSGA(); 
 }
 
-function showMenu(){ gameRunning = false; stunned = false; clearTimeout(stunTimer); clearTimeout(moveTimer); clearInterval(clockTimer); endOverlay.style.display = "none"; menu.style.display = "grid"; ball.classList.remove("hot"); updateHud(); renderPalette(); }
+function showMenu(){ gameRunning = false; stunned = false; clearTimeout(stunTimer); clearTimeout(moveTimer); clearInterval(clockTimer); clearTimeout(ejectTimer); endOverlay.style.display = "none"; menu.style.display = "grid"; ball.classList.remove("hot"); updateHud(); renderPalette(); }
 
 function tickClock(){ if(!gameRunning) return; timeLeft = Math.max(0, timeLeft - .1); timeText.textContent = timeLeft.toFixed(1); if(timeLeft <= 0) endGame("FINAL BUZZER", "TIME'S UP"); }
 
-// 🌟 修改：變速多元運球節奏
 function moveSGA(){
     if(!gameRunning || stunned) return;
-    
-    const randomSpeed = Math.floor(Math.random() * 600) + 400; // 400ms 到 1000ms 之間
-    
+    const randomSpeed = Math.floor(Math.random() * 600) + 400; 
     const rect = sga.getBoundingClientRect(); const safeTop = window.innerWidth <= 720 ? 118 : 150; const bottomReserve = window.innerWidth <= 720 ? 236 : 32;
     const maxX = Math.max(0, window.innerWidth - rect.width - 24); const maxY = Math.max(safeTop, window.innerHeight - rect.height - bottomReserve);
     const x = 12 + Math.random() * Math.max(1, maxX - 12); const y = safeTop + Math.random() * Math.max(1, maxY - safeTop);
@@ -587,9 +618,8 @@ function moveSGA(){
     sga.style.left = `${x}px`; sga.style.top = `${y}px`; 
     sga.style.setProperty("--lean", `${lean * Math.min(5, combo + 1)}deg`); 
     moveBall();
-    
     clearTimeout(moveTimer);
-    moveTimer = setTimeout(moveSGA, randomSpeed); // 自動再次呼叫
+    moveTimer = setTimeout(moveSGA, randomSpeed);
 }
 
 function moveBall(){
@@ -600,8 +630,24 @@ function moveBall(){
 
 function stealBall(){
     if(stunned) return; 
-    combo += 1; steals += 1; missCount = 0; // 抄到球重置錯誤
-    const gain = 100 + Math.min(combo * 15, 240); score += gain; updateHud();
+    combo += 1; steals += 1; missCount = 0; 
+    const gain = 100 + Math.min(combo * 15, 240); score += gain; 
+    
+    // 🌟 暴走模式：分數 > 500
+    if(score >= 500 && !isEnraged) {
+        isEnraged = true;
+        sga.classList.add("enraged");
+        
+        // 切換為暴走版圖片 (需確保你在資料夾內有這三張圖)
+        document.querySelector('.photo-dribble').src = "assets/sga-enraged-dribble.jpeg";
+        document.querySelector('.photo-stand').src = "assets/sga-enraged-standing.jpeg";
+        document.querySelector('.photo-fall').src = "assets/sga-enraged-fall.jpeg";
+        
+        showMessage("SGA MODE: ON!", "var(--red)");
+        playTone(300, .5, "sawtooth");
+    }
+
+    updateHud();
     showMessage(combo >= 5 ? `${combo}X STEAL!` : "STEAL!", "var(--green)"); playTone(440 + Math.min(combo * 35, 420), .07, "sine"); pulse(ball); moveBall();
 }
 
@@ -610,11 +656,15 @@ function callFoul(text){
     document.body.classList.add("flash"); setTimeout(() => document.body.classList.remove("flash"), 280);
 }
 
-// 🌟 新增：完美防當機的 Ankle Breaker 函式
+// 🌟 修復 2：腳踝終結者扣 100 分
 function triggerAnkleBreaker() {
-    clearTimeout(moveTimer); // 停下原本的移動
-    stunned = true;          // 鎖住玩家互動
+    clearTimeout(moveTimer); 
+    stunned = true;          
     
+    score -= 100;
+    if(score < 0) score = 0;
+    updateHud();
+
     ankleBreaker.classList.add("showAnkle");
     
     if("speechSynthesis" in window) {
@@ -627,8 +677,8 @@ function triggerAnkleBreaker() {
     
     setTimeout(() => {
         ankleBreaker.classList.remove("showAnkle");
-        stunned = false;  // 解除硬直
-        moveSGA();        // 重新喚醒遊戲迴圈，解決當機卡死！
+        stunned = false;  
+        moveSGA();        
     }, 1500);
 }
 
@@ -642,7 +692,11 @@ function stunSGA(shouldEndGame){
 }
 
 function endGame(reason, title){
-    if(!gameRunning) return; gameRunning = false; stunned = false; clearTimeout(stunTimer); clearTimeout(moveTimer); clearInterval(clockTimer);
+    if(isGameOver) return; // 🌟 新增防呆鎖，防止 endGame 重複觸發卡死
+    isGameOver = true;
+    gameRunning = false; stunned = false; 
+    clearTimeout(stunTimer); clearTimeout(moveTimer); clearInterval(clockTimer); clearTimeout(ejectTimer);
+    
     ball.classList.remove("hot", "locked"); sga.classList.remove("fallen"); earnedThisGame = score; tokens += earnedThisGame; saveEconomy();
     best = Math.max(best, score); localStorage.setItem("stealFromSgaBest", String(best));
     endReason.textContent = reason; endTitle.textContent = title; finalScore.textContent = score; bestScore.textContent = best; finalSteals.textContent = steals; finalTokens.textContent = tokens; finalEarned.textContent = `+${earnedThisGame}`;
