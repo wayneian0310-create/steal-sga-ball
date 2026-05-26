@@ -269,21 +269,21 @@ button{ font:inherit; }
 .shopLabel{ color:var(--muted); font-size:12px; font-weight:800; text-transform:uppercase; }
 #shopTokens{ font-size:24px; font-weight:900; line-height:1; text-align:right; font-variant-numeric:tabular-nums; }
 
-/* 🌟 修改：商店網格佈局 */
+/* 🌟 商店網格佈局 */
 #palette{ display:grid; grid-template-columns:repeat(6,1fr); gap:10px 6px; margin-top:12px; }
 
-/* 🌟 新增：每個球皮項目的包裹框，垂直置中排列 */
+/* 🌟 每個球皮項目的包裹框，垂直置中排列 */
 .skinWrapper{ display:flex; flex-direction:column; align-items:center; gap:4px; min-width:0; }
 
-/* 🌟 修改：球皮按鈕（移除 aspect-ratio，改用固定寬高確保完美圓形） */
+/* 🌟 球皮按鈕 */
 .colorBtn{ position:relative; width:100%; max-width:54px; aspect-ratio:1; border:2px solid rgba(255,255,255,.35); border-radius:50%; background:var(--swatch); background-size:cover; background-position:center; cursor:pointer; color:#071113; font-size:12px; font-weight:900; line-height:1; box-shadow:inset 0 0 0 4px rgba(255,255,255,.2), 0 6px 14px rgba(0,0,0,.18); display:flex; align-items:center; justify-content:center; padding:0; }
 .colorBtn.selected{ outline:3px solid var(--green); outline-offset:2px; }
 .colorBtn.locked{ filter:saturate(.5) brightness(.68); }
 .colorBtn.locked::after{ content:attr(data-cost); position:absolute; inset:auto -4px -7px auto; min-width:21px; min-height:21px; display:grid; place-items:center; border-radius:50%; background:var(--yellow); border:2px solid #10141e; color:#000; font-size:10px; z-index:2; }
 
-/* 🌟 新增：按鈕下方的名字標籤樣式 */
+/* 🌟 按鈕下方的名字標籤樣式 */
 .skinName{ color:var(--muted); font-size:11px; font-weight:bold; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%; margin-top:2px; }
-.selected + .skinName{ color:var(--green); } /* 當選中時，名字也變成綠色 */
+.selected + .skinName{ color:var(--green); }
 
 /* 裁判 */
 #referee { position: fixed; right: 22px; bottom: 18px; z-index: 21; width: 128px; height: 178px; pointer-events: none; transform-origin: 50% 100%; }
@@ -346,7 +346,6 @@ h1{ margin:10px 0 12px; font-size:clamp(44px,10vw,86px); line-height:.88; letter
     .primaryBtn, .ghostBtn{ width:100%; margin:0; }
     .ghostBtn{ margin-top:10px; }
     #leaderboardInputArea { flex-direction: column; }
-    /* 手機版讓網格變 4 欄，排版更寬敞 */
     #palette{ grid-template-columns:repeat(4,1fr); }
 }
 @media (max-height:620px){ #mobileHint{ display:none; } #message{ top:82px; } }
@@ -371,6 +370,9 @@ h1{ margin:10px 0 12px; font-size:clamp(44px,10vw,86px); line-height:.88; letter
 
     <div id="sga" class="pose-dribble" aria-label="SGA 持球者">
         <div id="shadow"></div>
+        
+        <video id="foulVideo" src="assets/foul.webm" playsinline style="display: none; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; z-index: 45; border-radius: 10px;"></video>
+
         <img class="sgaPhoto photo-dribble" src="assets/sga-dribble.jpeg" alt="">
         <img class="sgaPhoto photo-stand" src="assets/sga-standing.jpeg" alt="">
         <img class="sgaPhoto photo-fall" src="assets/sga-fall.jpeg" alt="">
@@ -450,6 +452,7 @@ const restartBtn = document.getElementById("restartBtn");
 const menuBtn = document.getElementById("menuBtn");
 const gameArea = document.getElementById("gameArea");
 const sga = document.getElementById("sga");
+const foulVideo = document.getElementById("foulVideo"); // 🌟 新增：影片元素變數
 const ball = document.getElementById("ball");
 const ballImage = document.getElementById("ballImage");
 const body = document.getElementById("body");
@@ -507,7 +510,6 @@ if(!ownedColors.includes("classic")) ownedColors.push("classic");
 const foulTargets = [body, ...document.querySelectorAll(".arm")];
 foulTargets.forEach(target => target.addEventListener("pointerdown", e => { e.stopPropagation(); if(!gameRunning || stunned) return; callFoul("SHOOTING FOUL!"); }));
 
-// 🌟 修改：點擊事件現在綁定在整個 palette，並透過 e.target.closest 判斷點到了哪顆球皮
 palette.addEventListener("click", e => { 
     const btn = e.target.closest("[data-skin]"); 
     if(btn) chooseBallColor(btn.dataset.skin); 
@@ -517,7 +519,42 @@ startBtn.addEventListener("click", startGame);
 restartBtn.addEventListener("click", startGame);
 menuBtn.addEventListener("click", showMenu);
 ball.addEventListener("pointerdown", e => { e.stopPropagation(); if(!gameRunning || stunned) return; stealBall(); });
-head.addEventListener("pointerdown", e => { e.stopPropagation(); if(!gameRunning || stunned) return; showMessage("FLAGRANT 2", "var(--yellow)"); playTone(120, .18, "sawtooth"); setTimeout(() => endGame("EJECTED", "FLAGRANT 2"), 360); });
+
+// 🌟 修改：點擊頭部時，觸發影片播放
+head.addEventListener("pointerdown", e => { 
+    e.stopPropagation(); 
+    if(!gameRunning || stunned) return; 
+
+    // 1. 暫停遊戲計時，避免在播影片時時間到了
+    gameRunning = false;
+    stunned = true; // 防止其他點擊
+    clearInterval(moveTimer);
+    clearInterval(clockTimer);
+
+    // 2. 隱藏籃球，避免畫面穿幫
+    ball.style.display = "none";
+
+    // 3. 顯示並播放影片
+    foulVideo.style.display = "block";
+    foulVideo.currentTime = 0; // 重設回第 0 秒
+    foulVideo.play();
+
+    // 4. 觸發裁判與音效
+    showMessage("FLAGRANT 2", "var(--yellow)"); 
+    playTone(120, .18, "sawtooth"); 
+    
+    // 5. 根據影片長度延遲進入結束畫面 (預設 1500 毫秒 = 1.5 秒)
+    // ⚠️ 記得根據你錄製的 foul.webm 影片實際長度，來調整這裡的毫秒數！
+    setTimeout(() => {
+        // 隱藏影片，恢復籃球顯示，為下一場遊戲做準備
+        foulVideo.style.display = "none";
+        ball.style.display = "block"; 
+        
+        // 呼叫結束遊戲
+        endGame("EJECTED", "FLAGRANT 2"); 
+    }, 9000); 
+});
+
 gameArea.addEventListener("pointerdown", e => { if(!gameRunning || stunned || e.target !== gameArea) return; combo = 0; updateHud(); showMessage("WHIFF", "#dce6f7"); playTone(180, .08, "triangle"); });
 window.addEventListener("resize", () => { if(gameRunning) moveSGA(); });
 
@@ -525,6 +562,7 @@ function startGame(){
     score = 0; combo = 0; fouls = 0; steals = 0; earnedThisGame = 0; timeLeft = 45; gameRunning = true; stunned = false;
     clearTimeout(stunTimer); menu.style.display = "none"; endOverlay.style.display = "none";
     referee.classList.remove("blowing"); sga.classList.remove("fallen"); ball.classList.remove("locked"); ball.classList.add("hot");
+    foulVideo.style.display = "none"; // 確保開局時影片是隱藏的
     setPose("dribble"); updateHud(); applyBallSkin(); moveSGA();
     clearInterval(moveTimer); clearInterval(clockTimer);
     moveTimer = setInterval(moveSGA, 720); clockTimer = setInterval(tickClock, 100);
@@ -581,15 +619,12 @@ function setPose(pose){ currentPose = pose; sga.classList.remove("pose-dribble",
 function loadOwnedColors(){ try{ const saved = JSON.parse(localStorage.getItem("stealFromSgaOwnedColors") || "[]"); return Array.isArray(saved) && saved.length ? saved : ["classic"]; }catch(e){ return ["classic"]; } }
 function saveEconomy(){ localStorage.setItem("stealFromSgaTokens", String(tokens)); localStorage.removeItem("stealFromSgaBankedScore"); localStorage.setItem("stealFromSgaOwnedColors", JSON.stringify(ownedColors)); localStorage.setItem("stealFromSgaBallColor", selectedColor); }
 
-// 🌟 修改：重新編寫商店球皮渲染邏輯，生成按鈕加名字的組合
 function renderPalette(){
     palette.innerHTML = "";
     ballSkins.forEach(skin => {
-        // 建立最外層包裹框
         const wrapper = document.createElement("div");
         wrapper.className = "skinWrapper";
 
-        // 建立球皮按鈕
         const btn = document.createElement("button");
         const owned = ownedColors.includes(skin.id);
         btn.type = "button"; 
@@ -608,12 +643,10 @@ function renderPalette(){
         btn.setAttribute("aria-label", `${skin.name}球皮`); 
         btn.textContent = selectedColor === skin.id ? "✓" : ""; 
 
-        // 建立名字標籤
         const nameLabel = document.createElement("div");
         nameLabel.className = "skinName";
         nameLabel.textContent = skin.name;
 
-        // 組裝 DOM 結構
         wrapper.appendChild(btn);
         wrapper.appendChild(nameLabel);
         palette.appendChild(wrapper);
