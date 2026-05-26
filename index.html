@@ -209,8 +209,8 @@ button{ font:inherit; }
     z-index: 9;
     background: transparent;
 }
-/* 暴走模式的專屬特效 */
-#sga.enraged #enragedFoulZone { display: block; }
+/* 暴走模式的專屬特效：整張圖範圍100%覆蓋 */
+#sga.enraged #enragedFoulZone { display: block; inset:0; width:100%; height:100%; border-radius:10px; }
 #sga.enraged .sgaPhoto { filter: drop-shadow(0 0 25px rgba(255, 69, 97, 0.8)) contrast(1.1); }
 
 #head{ position:absolute; left:96px; top:22px; width:94px; height:104px; border-radius:50%; background:transparent; border:0; z-index:13; }
@@ -432,6 +432,14 @@ h1{ margin:10px 0 12px; font-size:clamp(44px,10vw,86px); line-height:.88; letter
     </div>
 </div>
 
+<div class="overlay" id="mvpOverlay" style="display:none; z-index:150; background: radial-gradient(circle at 50% 50%, rgba(244,107,42,0.25), #05090f 85%); flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+    <div style="max-width: 420px; padding: 24px; background: rgba(10,16,25,0.92); border: 3px solid var(--thunder-orange); border-radius: 14px; box-shadow: 0 0 40px rgba(244,107,42,0.5); backdrop-filter: blur(10px);">
+        <img src="assets/sga-standing.jpeg" style="width: 100%; max-height: 42vh; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">
+        <h2 style="color: var(--yellow); font-size: 30px; margin: 20px 0 10px; font-weight: 900; line-height: 1.2; letter-spacing: 0.5px;">"I am MVP,<br>you are nothing bro"</h2>
+        <p style="color: var(--muted); font-size: 14px; margin: 0; text-transform: uppercase; letter-spacing: 2px;">- Shai Gilgeous-Alexander</p>
+    </div>
+</div>
+
 <div class="overlay" id="endOverlay" role="dialog" aria-modal="true" aria-labelledby="endTitle">
     <div class="panel">
         <div class="eyebrow" id="endReason">game over</div>
@@ -464,6 +472,7 @@ h1{ margin:10px 0 12px; font-size:clamp(44px,10vw,86px); line-height:.88; letter
 <script>
 const menu = document.getElementById("menu");
 const endOverlay = document.getElementById("endOverlay");
+const mvpOverlay = document.getElementById("mvpOverlay"); // 🌟 新增
 const startBtn = document.getElementById("startBtn");
 const restartBtn = document.getElementById("restartBtn");
 const menuBtn = document.getElementById("menuBtn");
@@ -473,7 +482,7 @@ const ball = document.getElementById("ball");
 const ballImage = document.getElementById("ballImage");
 const body = document.getElementById("body");
 const head = document.getElementById("head");
-const enragedFoulZone = document.getElementById("enragedFoulZone"); // 🌟 新增：暴走模式犯規區
+const enragedFoulZone = document.getElementById("enragedFoulZone"); 
 const scoreText = document.getElementById("score");
 const comboText = document.getElementById("combo");
 const foulText = document.getElementById("fouls");
@@ -495,8 +504,8 @@ const ankleBreaker = document.getElementById("ankleBreaker");
 let score = 0, combo = 0, fouls = 0, steals = 0, timeLeft = 45;
 let gameRunning = false, moveTimer = 0, clockTimer = 0, messageTimer = 0, stunTimer = 0, ejectTimer = 0;
 let missCount = 0; 
-let isGameOver = false; // 🌟 核心防當機鎖
-let isEnraged = false;  // 🌟 暴走模式觸發鎖
+let isGameOver = false; 
+let isEnraged = false;  
 let audioContext = null;
 let best = Number(localStorage.getItem("stealFromSgaBest") || 0);
 let tokens = Number(localStorage.getItem("stealFromSgaTokens") || 0);
@@ -528,9 +537,17 @@ const poseBallSpots = { dribble:[{x:-24,y:352,scale:1},{x:18,y:360,scale:.9},{x:
 if(!ownedColors.includes(selectedColor)) selectedColor = "classic";
 if(!ownedColors.includes("classic")) ownedColors.push("classic");
 
-// 🌟 犯規區加入新的隱形擴大區塊
 const foulTargets = [body, enragedFoulZone, ...document.querySelectorAll(".arm")];
 foulTargets.forEach(target => target.addEventListener("pointerdown", e => { e.stopPropagation(); if(!gameRunning || stunned) return; callFoul("SHOOTING FOUL!"); }));
+
+// 🌟 新增：全圖範圍監聽器。若在暴走模式下，點擊到 SGA 容器其餘位置（排除已 stopPropagation 的球與頭）也會觸發犯規
+sga.addEventListener("pointerdown", e => {
+    if(!gameRunning || stunned) return;
+    if(isEnraged) {
+        e.stopPropagation();
+        callFoul("SHOOTING FOUL!");
+    }
+});
 
 palette.addEventListener("click", e => { 
     const btn = e.target.closest("[data-skin]"); 
@@ -543,7 +560,6 @@ menuBtn.addEventListener("click", showMenu);
 
 ball.addEventListener("pointerdown", e => { e.stopPropagation(); if(!gameRunning || stunned) return; stealBall(); });
 
-// 🌟 修復 1：點頭會卡住的 Bug
 head.addEventListener("pointerdown", e => { 
     e.stopPropagation(); 
     if(!gameRunning || stunned) return; 
@@ -556,17 +572,18 @@ head.addEventListener("pointerdown", e => {
     showMessage("FLAGRANT 2", "var(--yellow)"); 
     playTone(120, .18, "sawtooth"); 
     animateReferee(); 
-    playFoulAudio();
+    playWhistle();
+    speakFlagrant2(); // 🌟 升級：二級犯規加入語音
+    
     sga.classList.remove("pose-dribble", "pose-shot", "pose-fake"); 
     sga.classList.add("fallen"); 
     ball.classList.add("locked");
     
-    // 使用獨立計時器，並在觸發後確實呼叫 endGame，不會被阻擋
     ejectTimer = setTimeout(() => endGame("EJECTED", "FLAGRANT 2"), 1500); 
 });
 
 gameArea.addEventListener("pointerdown", e => { 
-    if(!gameRunning || stunned || e.target === sga || e.target.closest("#sga") || e.target.closest("#menu") || e.target.closest("#endOverlay")) return; 
+    if(!gameRunning || stunned || e.target === sga || e.target.closest("#sga") || e.target.closest("#menu") || e.target.closest("#endOverlay") || e.target.closest("#mvpOverlay")) return; 
     combo = 0; 
     updateHud(); 
     missCount++;
@@ -586,7 +603,6 @@ function startGame(){
     score = 0; combo = 0; fouls = 0; steals = 0; earnedThisGame = 0; timeLeft = 45; 
     gameRunning = true; stunned = false; missCount = 0; isGameOver = false;
     
-    // 🌟 重置 SGA 狀態與圖片回歸正常
     isEnraged = false;
     sga.classList.remove("enraged");
     document.querySelector('.photo-dribble').src = "assets/sga-dribble.jpeg";
@@ -594,7 +610,7 @@ function startGame(){
     document.querySelector('.photo-fall').src = "assets/sga-fall.jpeg";
 
     clearTimeout(stunTimer); clearTimeout(moveTimer); clearInterval(clockTimer); clearTimeout(ejectTimer);
-    menu.style.display = "none"; endOverlay.style.display = "none";
+    menu.style.display = "none"; endOverlay.style.display = "none"; mvpOverlay.style.display = "none";
     referee.classList.remove("blowing"); sga.classList.remove("fallen"); ball.classList.remove("locked"); ball.classList.add("hot");
     
     setPose("dribble"); updateHud(); applyBallSkin(); 
@@ -603,13 +619,18 @@ function startGame(){
     moveSGA(); 
 }
 
-function showMenu(){ gameRunning = false; stunned = false; clearTimeout(stunTimer); clearTimeout(moveTimer); clearInterval(clockTimer); clearTimeout(ejectTimer); endOverlay.style.display = "none"; menu.style.display = "grid"; ball.classList.remove("hot"); updateHud(); renderPalette(); }
+function showMenu(){ gameRunning = false; stunned = false; clearTimeout(stunTimer); clearTimeout(moveTimer); clearInterval(clockTimer); clearTimeout(ejectTimer); endOverlay.style.display = "none"; mvpOverlay.style.display = "none"; menu.style.display = "grid"; ball.classList.remove("hot"); updateHud(); renderPalette(); }
 
 function tickClock(){ if(!gameRunning) return; timeLeft = Math.max(0, timeLeft - .1); timeText.textContent = timeLeft.toFixed(1); if(timeLeft <= 0) endGame("FINAL BUZZER", "TIME'S UP"); }
 
 function moveSGA(){
     if(!gameRunning || stunned) return;
-    const randomSpeed = Math.floor(Math.random() * 600) + 400; 
+    
+    // 🌟 調整：暴走模式下速度從 400~1000ms 壓縮至 200~500ms，移動更瘋狂
+    const baseSpeed = isEnraged ? 200 : 400;
+    const speedRange = isEnraged ? 300 : 600;
+    const randomSpeed = Math.floor(Math.random() * speedRange) + baseSpeed; 
+    
     const rect = sga.getBoundingClientRect(); const safeTop = window.innerWidth <= 720 ? 118 : 150; const bottomReserve = window.innerWidth <= 720 ? 236 : 32;
     const maxX = Math.max(0, window.innerWidth - rect.width - 24); const maxY = Math.max(safeTop, window.innerHeight - rect.height - bottomReserve);
     const x = 12 + Math.random() * Math.max(1, maxX - 12); const y = safeTop + Math.random() * Math.max(1, maxY - safeTop);
@@ -625,7 +646,16 @@ function moveSGA(){
 function moveBall(){
     const spots = poseBallSpots[currentPose] || poseBallSpots.dribble; const spot = spots[Math.floor(Math.random() * spots.length)];
     const shrink = Math.max(.68, 1 - combo * .018); const size = Math.round(100 * spot.scale * shrink);
-    ball.style.width = `${size}px`; ball.style.height = `${size}px`; ball.style.left = `${spot.x}px`; ball.style.top = `${spot.y}px`;
+    
+    // 🌟 調整：暴走模式下，球的動態移動軌跡會多出隨機偏移，極難預測
+    let offsetX = 0, offsetY = 0;
+    if (isEnraged) {
+        offsetX = Math.floor(Math.random() * 40) - 20; 
+        offsetY = Math.floor(Math.random() * 40) - 20;
+    }
+    
+    ball.style.width = `${size}px`; ball.style.height = `${size}px`; 
+    ball.style.left = `${spot.x + offsetX}px`; ball.style.top = `${spot.y + offsetY}px`;
 }
 
 function stealBall(){
@@ -638,7 +668,6 @@ function stealBall(){
         isEnraged = true;
         sga.classList.add("enraged");
         
-        // 切換為暴走版圖片 (需確保你在資料夾內有這三張圖)
         document.querySelector('.photo-dribble').src = "assets/sga-enraged-dribble.jpeg";
         document.querySelector('.photo-stand').src = "assets/sga-enraged-standing.jpeg";
         document.querySelector('.photo-fall').src = "assets/sga-enraged-fall.jpeg";
@@ -656,7 +685,6 @@ function callFoul(text){
     document.body.classList.add("flash"); setTimeout(() => document.body.classList.remove("flash"), 280);
 }
 
-// 🌟 修復 2：腳踝終結者扣 100 分
 function triggerAnkleBreaker() {
     clearTimeout(moveTimer); 
     stunned = true;          
@@ -692,7 +720,7 @@ function stunSGA(shouldEndGame){
 }
 
 function endGame(reason, title){
-    if(isGameOver) return; // 🌟 新增防呆鎖，防止 endGame 重複觸發卡死
+    if(isGameOver) return; 
     isGameOver = true;
     gameRunning = false; stunned = false; 
     clearTimeout(stunTimer); clearTimeout(moveTimer); clearInterval(clockTimer); clearTimeout(ejectTimer);
@@ -709,7 +737,24 @@ function endGame(reason, title){
     const input = document.getElementById('nicknameInput');
     if(input) input.value = '';
 
-    setTimeout(() => endOverlay.style.display = "grid", 280);
+    // 🌟 新增：結算前先跳出 SGA MVP 特效封面並發出口頭嘲諷語音
+    if(mvpOverlay) {
+        mvpOverlay.style.display = "flex";
+        if("speechSynthesis" in window) {
+            window.speechSynthesis.cancel();
+            const mvpSpeech = new SpeechSynthesisUtterance("I am MVP, you are nothing bro");
+            mvpSpeech.lang = "en-US";
+            mvpSpeech.rate = 0.92; // 稍慢、拽拽的語速
+            mvpSpeech.pitch = 0.65; // 調低音調，模擬 SGA 磁性厚實的語音包效果
+            window.speechSynthesis.speak(mvpSpeech);
+        }
+        setTimeout(() => {
+            mvpOverlay.style.display = "none";
+            endOverlay.style.display = "grid";
+        }, 2500); // 2.5 秒後關閉並切換回排行榜計分板
+    } else {
+        setTimeout(() => endOverlay.style.display = "grid", 280);
+    }
 }
 
 function setPose(pose){ currentPose = pose; sga.classList.remove("pose-dribble", "pose-shot", "pose-fake"); sga.classList.add(`pose-${pose}`); }
@@ -785,6 +830,18 @@ function chirp(start, duration, from, to, type, volume){
     osc.connect(gain); gain.connect(audioContext.destination); osc.start(start); osc.stop(start + duration + .02);
 }
 function speakShootingFoul(){ if(!("speechSynthesis" in window)) return; const call = new SpeechSynthesisUtterance("Shooting foul!"); call.lang = "en-US"; call.rate = 1.12; call.pitch = .28; window.speechSynthesis.cancel(); window.speechSynthesis.speak(call); }
+
+// 🌟 新增：Flagrant 2 專屬語音功能
+function speakFlagrant2(){ 
+    if(!("speechSynthesis" in window)) return; 
+    const call = new SpeechSynthesisUtterance("Flagrant 2! Ejected!"); 
+    call.lang = "en-US"; 
+    call.rate = 1.0; 
+    call.pitch = 0.6; 
+    window.speechSynthesis.cancel(); 
+    window.speechSynthesis.speak(call); 
+}
+
 function playTone(freq, dur, type){
     try{ audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)(); const osc = audioContext.createOscillator(); const gain = audioContext.createGain(); osc.type = type; osc.frequency.value = freq;
     gain.gain.setValueAtTime(.04, audioContext.currentTime); gain.gain.exponentialRampToValueAtTime(.001, audioContext.currentTime + dur); osc.connect(gain); gain.connect(audioContext.destination); osc.start(); osc.stop(audioContext.currentTime + dur); }
